@@ -56,29 +56,6 @@ export function computeFileStats(commits: Commit[]): FileAgg[] {
     .sort((a, b) => b.changeCount - a.changeCount);
 }
 
-export interface DensityDay {
-  date: string;
-  count: number;
-}
-
-export function computeDailyDensity(commits: Commit[]): DensityDay[] {
-  if (commits.length === 0) return [];
-  const days = new Map<string, number>();
-  for (const c of commits) {
-    const d = c.date.slice(0, 10);
-    days.set(d, (days.get(d) ?? 0) + 1);
-  }
-  const dates = [...days.keys()].sort();
-  const min = new Date(dates[0] + "T00:00:00Z");
-  const max = new Date(dates[dates.length - 1] + "T00:00:00Z");
-  const out: DensityDay[] = [];
-  for (let t = min.getTime(); t <= max.getTime(); t += 86400000) {
-    const key = new Date(t).toISOString().slice(0, 10);
-    out.push({ date: key, count: days.get(key) ?? 0 });
-  }
-  return out;
-}
-
 export interface HeatmapCell {
   date: string | null;
   count: number;
@@ -96,24 +73,31 @@ export interface CommitHeatmap {
   maxCount: number;
 }
 
-// Buckets commits into a GitHub-style calendar grid: columns are weeks
-// (Sunday-start), rows are weekdays. The grid is padded with out-of-range
-// cells (date: null) so every week column has exactly 7 rows.
-export function computeCommitHeatmap(commits: Commit[]): CommitHeatmap {
-  if (commits.length === 0) return { weeks: [], monthLabels: [], maxCount: 0 };
+// Distinct calendar years with at least one commit, newest first — drives
+// the heatmap's year picker.
+export function commitYears(commits: Commit[]): number[] {
+  const years = new Set<number>();
+  for (const c of commits) {
+    const y = Number(c.date.slice(0, 4));
+    if (!Number.isNaN(y)) years.add(y);
+  }
+  return [...years].sort((a, b) => b - a);
+}
 
+// Buckets one calendar year (Jan 1 - Dec 31) into a GitHub-style grid:
+// columns are weeks (Sunday-start), rows are weekdays. Padded with
+// out-of-year cells (date: null) so every week column has exactly 7 rows.
+export function computeCommitHeatmapForYear(commits: Commit[], year: number): CommitHeatmap {
   const days = new Map<string, number>();
   for (const c of commits) {
     const key = c.date.slice(0, 10);
+    if (Number(key.slice(0, 4)) !== year) continue;
     days.set(key, (days.get(key) ?? 0) + 1);
   }
-  const dates = [...days.keys()].sort();
-  const minD = new Date(dates[0] + "T00:00:00Z");
-  const maxD = new Date(dates[dates.length - 1] + "T00:00:00Z");
 
-  const start = new Date(minD);
+  const start = new Date(Date.UTC(year, 0, 1));
   start.setUTCDate(start.getUTCDate() - start.getUTCDay());
-  const end = new Date(maxD);
+  const end = new Date(Date.UTC(year, 11, 31));
   end.setUTCDate(end.getUTCDate() + (6 - end.getUTCDay()));
 
   const weeks: HeatmapWeek[] = [];
@@ -125,15 +109,15 @@ export function computeCommitHeatmap(commits: Commit[]): CommitHeatmap {
     const cells: HeatmapCell[] = [];
     for (let dow = 0; dow < 7; dow++) {
       const cursor = new Date(t + dow * DAY_MS);
-      if (dow === 0) {
+      const inYear = cursor.getUTCFullYear() === year;
+      if (dow === 0 && inYear) {
         const month = cursor.getUTCMonth();
         if (month !== lastMonth) {
           monthLabels.push({ weekIndex, label: cursor.toLocaleString("en-US", { month: "short", timeZone: "UTC" }) });
           lastMonth = month;
         }
       }
-      const inRange = cursor.getTime() >= minD.getTime() && cursor.getTime() <= maxD.getTime();
-      if (!inRange) {
+      if (!inYear) {
         cells.push({ date: null, count: 0 });
         continue;
       }
@@ -260,4 +244,48 @@ export function computeSurvival(commits: Commit[]): SurvivalMonth[] {
     const decay = Math.max(0.35, Math.pow(0.965, monthsAgo * 3) - hash01(month) * 0.05);
     return { month, added, surviving: Math.round(added * decay) };
   });
+}
+
+export interface CommitContext {
+  filesCount: number;
+  avgFilesPerCommit: number;
+  sizePercentile: number;
+  sequenceIndex: number;
+  totalCommits: number;
+  authorGapDays: number | null;
+  isMerge: boolean;
+}
+
+// Places a single commit in the context of the whole repo's history — the
+// raw +/- numbers on a commit mean little without something to compare them
+// to (is 11 files a lot? is this commit part of a burst or a lull?).
+export function computeCommitContext(commit: Commit, allCommits: Commit[]): CommitContext {
+  const totalFiles = allCommits.reduce((sum, c) => sum + (c.files?.length ?? 0), 0);
+  const avgFilesPerCommit = allCommits.length ? totalFiles / allCommits.length : 0;
+
+  const mySize = commit.insertions + commit.deletions;
+  const sizes = allCommits.map((c) => c.insertions + c.deletions).sort((a, b) => a - b);
+  const smallerOrEqual = sizes.filter((s) => s <= mySize).length;
+  const sizePercentile = sizes.length ? Math.round((smallerOrEqual / sizes.length) * 100) : 0;
+
+  const sorted = [...allCommits].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const idx = sorted.findIndex((c) => c.hash === commit.hash);
+
+  let authorGapDays: number | null = null;
+  for (let i = idx - 1; i >= 0; i--) {
+    if (sorted[i].authorName === commit.authorName) {
+      authorGapDays = Math.round((new Date(commit.date).getTime() - new Date(sorted[i].date).getTime()) / DAY_MS);
+      break;
+    }
+  }
+
+  return {
+    filesCount: commit.files?.length ?? 0,
+    avgFilesPerCommit,
+    sizePercentile,
+    sequenceIndex: idx + 1,
+    totalCommits: allCommits.length,
+    authorGapDays,
+    isMerge: (commit.parents?.length ?? 0) > 1,
+  };
 }

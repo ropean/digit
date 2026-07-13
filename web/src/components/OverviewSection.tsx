@@ -1,5 +1,4 @@
 import type { Commit } from "../types";
-import type { CommitHeatmap } from "../stats";
 import { formatNum, formatDate } from "../format";
 import { ContributionHeatmap } from "./ContributionHeatmap";
 
@@ -37,7 +36,7 @@ interface RepoInfo {
   remoteUrl?: string;
 }
 
-export function OverviewSection({ kpi, heatmap, repo }: { kpi: Kpi; heatmap: CommitHeatmap; repo: RepoInfo }) {
+export function OverviewSection({ kpi, commits, repo }: { kpi: Kpi; commits: Commit[]; repo: RepoInfo }) {
   return (
     <div id="sec-overview" className="section">
       <div className="section-title">Overview</div>
@@ -104,7 +103,7 @@ export function OverviewSection({ kpi, heatmap, repo }: { kpi: Kpi; heatmap: Com
         )}
       </div>
       <div className="section-subtitle">Commit activity (selected range)</div>
-      <ContributionHeatmap heatmap={heatmap} />
+      <ContributionHeatmap commits={commits} />
     </div>
   );
 }

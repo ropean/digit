@@ -2,9 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RepoData } from "./types";
 import {
   computeAuthorStats,
-  computeCommitHeatmap,
   computeCoupling,
-  computeDailyDensity,
   computeFileStats,
   computeKeywords,
   computeSurvival,
@@ -106,25 +104,6 @@ export function App({ data }: { data: RepoData }) {
     setDateTo(to);
     setPage(1);
   }, []);
-  const handleRangeFrom = useCallback(
-    (dayIndex: number) => {
-      const candidate = new Date(minDate.getTime() + dayIndex * DAY_MS);
-      setQuickRange("custom");
-      setDateFrom(candidate > dateTo ? dateTo : candidate);
-      setPage(1);
-    },
-    [minDate, dateTo],
-  );
-  const handleRangeTo = useCallback(
-    (dayIndex: number) => {
-      const candidate = new Date(minDate.getTime() + dayIndex * DAY_MS);
-      setQuickRange("custom");
-      setDateTo(candidate < dateFrom ? dateFrom : candidate);
-      setPage(1);
-    },
-    [minDate, dateFrom],
-  );
-
   const hasActiveFilters = !!(authorFilter || fileFilter || messageFilter || searchQuery);
   const clearFilters = useCallback(() => {
     setAuthorFilter(null);
@@ -134,11 +113,9 @@ export function App({ data }: { data: RepoData }) {
     setPage(1);
   }, []);
 
-  // The date range updates on every pixel of a slider drag; debouncing the
-  // value that actually drives filtering/aggregation keeps that drag smooth
-  // instead of recomputing every derived stat (coupling, growth, etc.) on
-  // each intermediate position. The slider and density chart still read the
-  // live dateFrom/dateTo below, so dragging itself feels instant.
+  // Debouncing the value that actually drives filtering/aggregation avoids
+  // recomputing every derived stat (coupling, heatmap, etc.) on each
+  // intermediate keystroke/drag.
   const debouncedDateFrom = useDebouncedValue(dateFrom, 120);
   const debouncedDateTo = useDebouncedValue(dateTo, 120);
   const debouncedFileFilter = useDebouncedValue(fileFilter, 150);
@@ -170,12 +147,10 @@ export function App({ data }: { data: RepoData }) {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [data.commits, debouncedDateFrom, debouncedDateTo, authorFilter, debouncedFileFilter, debouncedMessageFilter, debouncedSearchQuery]);
 
-  const density = useMemo(() => computeDailyDensity(data.commits), [data.commits]);
   const kpi = useMemo(() => computeKpi(filteredCommits), [filteredCommits]);
   const authorStats = useMemo(() => computeAuthorStats(filteredCommits), [filteredCommits]);
   const fileStats = useMemo(() => computeFileStats(filteredCommits), [filteredCommits]);
   const coupling = useMemo(() => computeCoupling(filteredCommits, 12), [filteredCommits]);
-  const heatmap = useMemo(() => computeCommitHeatmap(filteredCommits), [filteredCommits]);
   const keywords = useMemo(() => computeKeywords(filteredCommits), [filteredCommits]);
   const survival = useMemo(() => computeSurvival(filteredCommits), [filteredCommits]);
 
@@ -232,16 +207,11 @@ export function App({ data }: { data: RepoData }) {
       />
       <NavTabs items={NAV_ITEMS} active={activeSection} onSelect={jumpTo} />
       <TimelineFilterBar
-        minDate={minDate}
-        maxDate={maxDate}
         dateFrom={dateFrom}
         dateTo={dateTo}
         quickRange={quickRange}
-        density={density}
         onQuickRange={handleQuickRange}
         onApplyCustomRange={handleApplyCustomRange}
-        onRangeFrom={handleRangeFrom}
-        onRangeTo={handleRangeTo}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={clearFilters}
         filteredCount={filteredCommits.length}
@@ -255,7 +225,7 @@ export function App({ data }: { data: RepoData }) {
       )}
       <div className="body-wrap">
         <div className="content-area" ref={scrollRef}>
-          <OverviewSection kpi={kpi} heatmap={heatmap} repo={repoInfo} />
+          <OverviewSection kpi={kpi} commits={filteredCommits} repo={repoInfo} />
           <ProjectStructureSection tree={data.tree} />
           <CommitsSection
             commits={filteredCommits}
@@ -295,6 +265,7 @@ export function App({ data }: { data: RepoData }) {
       {selectedCommit && (
         <CommitDrawer
           commit={selectedCommit}
+          allCommits={data.commits}
           remoteUrl={data.remoteUrl}
           openFile={drawerFileOpen}
           onToggleFile={(path) => setDrawerFileOpen((prev) => (prev === path ? null : path))}

@@ -1,20 +1,12 @@
-import { useMemo, useState } from "react";
-import type { DensityDay } from "../stats";
+import { useState } from "react";
 import { formatDate } from "../format";
 
-const DAY_MS = 86400000;
-
 interface Props {
-  minDate: Date;
-  maxDate: Date;
   dateFrom: Date;
   dateTo: Date;
   quickRange: string;
-  density: DensityDay[];
   onQuickRange: (id: string) => void;
   onApplyCustomRange: (fromIso: string, toIso: string) => void;
-  onRangeFrom: (dayIndex: number) => void;
-  onRangeTo: (dayIndex: number) => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
   filteredCount: number;
@@ -29,14 +21,10 @@ const QUICK_DEFS = [
 ];
 
 export function TimelineFilterBar(props: Props) {
-  const { minDate, maxDate, dateFrom, dateTo, quickRange, density } = props;
+  const { dateFrom, dateTo, quickRange } = props;
   const [customOpen, setCustomOpen] = useState(false);
   const [draftFrom, setDraftFrom] = useState("");
   const [draftTo, setDraftTo] = useState("");
-  const totalDaySpan = Math.max(1, Math.round((maxDate.getTime() - minDate.getTime()) / DAY_MS));
-  const fromDayIndex = Math.round((dateFrom.getTime() - minDate.getTime()) / DAY_MS);
-  const toDayIndex = Math.round((dateTo.getTime() - minDate.getTime()) / DAY_MS);
-  const maxDensity = useMemo(() => Math.max(1, ...density.map((d) => d.count)), [density]);
 
   const openCustom = () => {
     setDraftFrom(formatDate(dateFrom.toISOString()));
@@ -94,42 +82,6 @@ export function TimelineFilterBar(props: Props) {
             Clear filters ({props.filteredCount} / {props.totalCount})
           </button>
         )}
-      </div>
-      <div className="density-wrap">
-        <div className="density-bars">
-          {density.map((d) => {
-            const t = new Date(d.date).getTime();
-            const inRange = t >= dateFrom.getTime() && t <= dateTo.getTime();
-            return (
-              <div
-                key={d.date}
-                className="density-bar"
-                title={`${d.date}: ${d.count} commit${d.count === 1 ? "" : "s"}`}
-                style={{
-                  height: `${4 + (d.count / maxDensity) * 40}px`,
-                  background: inRange ? "var(--accent)" : "var(--baseline)",
-                  opacity: inRange ? 0.9 : 0.5,
-                }}
-              />
-            );
-          })}
-        </div>
-        <input
-          type="range"
-          className="range-input"
-          min={0}
-          max={totalDaySpan}
-          value={fromDayIndex}
-          onChange={(e) => props.onRangeFrom(Number(e.target.value))}
-        />
-        <input
-          type="range"
-          className="range-input range-input-top"
-          min={0}
-          max={totalDaySpan}
-          value={toDayIndex}
-          onChange={(e) => props.onRangeTo(Number(e.target.value))}
-        />
       </div>
     </div>
   );

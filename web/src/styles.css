@@ -167,37 +167,9 @@ button, input, select {
   margin-left: auto; background: transparent; color: var(--accent); border: none;
   font-size: 12.5px; cursor: pointer; text-decoration: underline; white-space: nowrap;
 }
-.density-wrap { position: relative; height: 46px; }
-.density-bars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 1px; }
-.density-bar { flex: 1; min-width: 1px; border-radius: 1px; }
-/*
- * Two overlapping <input type="range"> share this track to make a dual-handle
- * brush. A full-width input naturally captures pointer events across its
- * entire box, so the top one (range-input-top) would swallow every drag and
- * make the bottom handle ("from") ungrabbable. Fix: disable pointer events on
- * the track itself and re-enable them only on the thumb, so each slider only
- * responds to drags starting on its own handle.
- */
-.range-input {
-  position: absolute; inset: 0; width: 100%; height: 46px; margin: 0; opacity: 0.001; z-index: 3;
-  -webkit-appearance: none; appearance: none; background: transparent; pointer-events: none;
-}
-.range-input::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 18px; height: 46px; cursor: ew-resize; pointer-events: auto; background: transparent;
-}
-.range-input::-moz-range-thumb {
-  width: 18px; height: 46px; cursor: ew-resize; pointer-events: auto; background: transparent; border: none;
-}
-.range-input::-moz-range-track { background: transparent; }
-.range-input-top { z-index: 4; }
-
 /* ---------- body ---------- */
 .body-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-/* Bottom padding is large (not 60px) so scrollIntoView({block:"start"}) can
-   always align the last section's top with the viewport's top — otherwise a
-   short trailing section (e.g. Keywords) clamps against the max scroll
-   position and a nav click can appear to do nothing. */
-.content-area { flex: 1; min-height: 0; min-width: 0; overflow-y: auto; padding: 22px 26px 55vh; }
+.content-area { flex: 1; min-height: 0; min-width: 0; overflow-y: auto; padding: 22px 26px; }
 
 .section { display: block; margin-bottom: 44px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
 .section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
@@ -213,8 +185,15 @@ button, input, select {
 .heatmap-grid { display: flex; }
 .heatmap-week { display: flex; flex-direction: column; }
 .heatmap-cell { border-radius: 2px; }
-.heatmap-legend { display: flex; align-items: center; gap: 4px; margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+.heatmap-legend { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
 .heatmap-legend .heatmap-cell { border-radius: 2px; }
+.heatmap-controls { display: flex; align-items: center; gap: 16px; margin-top: 10px; }
+.heatmap-years { display: flex; gap: 4px; }
+.year-btn {
+  background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 9px; font-size: 11px; font-family: var(--mono); cursor: pointer; font-weight: 500;
+}
+.year-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 /* ---------- kpi ---------- */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 14px 0 22px; }
@@ -334,7 +313,13 @@ tr.commit-row.selected td { background: var(--accent-soft); }
 .drawer-remote-link { font-size: 11px; color: var(--accent); text-decoration: none; }
 .drawer-remote-link:hover { text-decoration: underline; }
 .drawer-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; font-family: var(--mono); }
-.drawer-message { font-size: 14px; margin-bottom: 18px; line-height: 1.5; font-weight: 500; }
+.drawer-message { font-size: 14px; margin-bottom: 14px; line-height: 1.5; font-weight: 500; }
+.drawer-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.drawer-stat { background: var(--surface-2); border-radius: 6px; padding: 8px 10px; }
+.drawer-stat-wide { grid-column: 1 / -1; }
+.drawer-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px; }
+.drawer-stat-value { font-size: 12.5px; font-family: var(--mono); color: var(--text-primary); }
+.drawer-stat-sub { font-family: var(--mono); color: var(--text-muted); }
 .drawer-files-title { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 8px; }
 .drawer-file-list { display: flex; flex-direction: column; gap: 4px; }
 .drawer-file-row {
