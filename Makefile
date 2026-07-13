@@ -1,15 +1,18 @@
-.PHONY: build build-web build-go dev clean
+.PHONY: build build-web build-cli dev clean
 
-build: build-web build-go
+BINARY := digit
+EXE := $(shell go env GOEXE)
+
+build: build-web build-cli
 
 build-web:
 	cd web && pnpm install && pnpm run build
 
-build-go:
-	go build -o digit .
+build-cli:
+	go build -o $(BINARY)$(EXE) .
 
 dev:
 	cd web && pnpm run dev
 
 clean:
-	rm -f digit
+	rm -f $(BINARY) $(BINARY).exe

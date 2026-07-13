@@ -87,12 +87,20 @@ export interface CouplingNode {
   changeCount: number;
 }
 
+// Commits touching more files than this are still counted toward each
+// file's changeCount, but skipped for pairwise coupling — that loop is
+// O(k^2) per commit, and a handful of huge commits (a vendor bump, an
+// initial import) can otherwise dwarf the cost of every other commit
+// combined.
+const COUPLING_FILE_CAP = 60;
+
 export function computeCoupling(commits: Commit[], topN: number): { pairs: CouplingPair[]; nodes: CouplingNode[] } {
   const pairCounts = new Map<string, number>();
   const changeCount = new Map<string, number>();
   for (const c of commits) {
     const paths = (c.files ?? []).map((f) => f.path);
     for (const p of paths) changeCount.set(p, (changeCount.get(p) ?? 0) + 1);
+    if (paths.length > COUPLING_FILE_CAP) continue;
     for (let i = 0; i < paths.length; i++) {
       for (let j = i + 1; j < paths.length; j++) {
         const key = [paths[i], paths[j]].sort().join("|||");

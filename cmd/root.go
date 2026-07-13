@@ -3,6 +3,8 @@
 package cmd
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io/fs"
 	"os"
@@ -10,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -47,7 +50,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	flags := rootCmd.Flags()
-	flags.StringVarP(&flagOutput, "output", "o", "./digit-report.html", "输出文件路径")
+	flags.StringVarP(&flagOutput, "output", "o", "", "输出文件路径（默认写入系统下载目录下的 digit-reports/<仓库名>-<hash>/report-<时间戳>.html）")
 	flags.StringVar(&flagSince, "since", "", "起始日期（含），支持绝对日期或相对值如 30d")
 	flags.StringVar(&flagUntil, "until", "", "截止日期（含）")
 	flags.StringVar(&flagAuthor, "author", "", "按作者名/邮箱过滤，逗号分隔，支持多个")
@@ -145,6 +148,16 @@ func runGitViz(c *cobra.Command, args []string) error {
 	data := aggregate.BuildRepoData(repoPath, commits, branches, tags, filters, truncated)
 
 	outputPath := flagOutput
+	if outputPath == "" {
+		absRepo, aerr := filepath.Abs(repoPath)
+		if aerr != nil {
+			absRepo = repoPath
+		}
+		outputPath, err = defaultOutputPath(absRepo, flagFormat)
+		if err != nil {
+			return err
+		}
+	}
 	if dir := filepath.Dir(outputPath); dir != "." {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return fmt.Errorf("创建输出目录失败: %w", err)
@@ -171,6 +184,41 @@ func runGitViz(c *cobra.Command, args []string) error {
 		}
 	}
 	return nil
+}
+
+// defaultOutputPath builds the report path used when --output isn't given:
+// <Downloads>/digit-reports/<repo-name>-<hash>/report-<MMDDYY-HHmm>.<ext>.
+// The hash is derived from the repo's absolute path so the same repo
+// always lands in the same subfolder even if its basename collides with
+// another repo elsewhere on disk. The timestamp avoids colons so the
+// filename is valid on Windows.
+func defaultOutputPath(absRepoPath, format string) (string, error) {
+	downloads, err := userDownloadsDir()
+	if err != nil {
+		return "", fmt.Errorf("无法定位系统下载目录: %w", err)
+	}
+	repoBase := filepath.Base(absRepoPath)
+	ext := "html"
+	if format == "json" {
+		ext = "json"
+	}
+	dirName := fmt.Sprintf("%s-%s", repoBase, shortHash(absRepoPath))
+	fileName := fmt.Sprintf("report-%s.%s", time.Now().Format("010206-1504"), ext)
+	return filepath.Join(downloads, "digit-reports", dirName, fileName), nil
+}
+
+func userDownloadsDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, "Downloads"), nil
+}
+
+// shortHash derives a short, stable, filesystem-friendly id from s.
+func shortHash(s string) string {
+	sum := sha1.Sum([]byte(s))
+	return hex.EncodeToString(sum[:])[:7]
 }
 
 func splitCSV(s string) []string {

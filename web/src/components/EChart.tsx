@@ -1,20 +1,33 @@
 import { useEffect, useRef } from "react";
-import * as echarts from "echarts";
+import * as echarts from "echarts/core";
+import { LineChart } from "echarts/charts";
+import { GridComponent, TooltipComponent } from "echarts/components";
+import { SVGRenderer } from "echarts/renderers";
 import type { EChartsOption } from "echarts";
+
+// Tree-shaken registration: only the chart type / components / renderer this
+// app actually uses (a single line chart). Importing the full "echarts"
+// package instead pulls in every chart type, both renderers, and every
+// component, which was the single biggest contributor to report size and
+// load time.
+echarts.use([LineChart, GridComponent, TooltipComponent, SVGRenderer]);
 
 interface Props {
   option: EChartsOption;
   height?: number;
-  dark: boolean;
+  // Accepted for API symmetry with callers that already compute it for
+  // their own option colors; the chart instance itself doesn't need a
+  // named echarts theme since every color in `option` is set explicitly.
+  dark?: boolean;
 }
 
-export function EChart({ option, height = 320, dark }: Props) {
+export function EChart({ option, height = 320 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
     if (!ref.current) return;
-    const chart = echarts.init(ref.current, dark ? "dark" : undefined, { renderer: "svg" });
+    const chart = echarts.init(ref.current, undefined, { renderer: "svg" });
     chartRef.current = chart;
     const onResize = () => chart.resize();
     window.addEventListener("resize", onResize);
@@ -23,8 +36,7 @@ export function EChart({ option, height = 320, dark }: Props) {
       chart.dispose();
       chartRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dark]);
+  }, []);
 
   useEffect(() => {
     chartRef.current?.setOption(option, true);

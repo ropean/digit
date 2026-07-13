@@ -10,6 +10,8 @@ import {
   computeSurvival,
 } from "./stats";
 import { categoricalColor, prefersDark } from "./theme";
+import { formatCompactTimestamp } from "./format";
+import { useDebouncedValue } from "./useDebouncedValue";
 import { Header } from "./components/Header";
 import { NavTabs, type NavItem } from "./components/NavTabs";
 import { TimelineFilterBar } from "./components/TimelineFilterBar";
@@ -43,6 +45,11 @@ export function App({ data }: { data: RepoData }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const repoName = data.repoPath.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || data.repoPath;
+    document.title = `${repoName} digit report on ${formatCompactTimestamp(data.generatedAt)}`;
+  }, [data.repoPath, data.generatedAt]);
   const dark = theme === "dark";
 
   const commitTimes = useMemo(() => data.commits.map((c) => new Date(c.date).getTime()).filter((t) => !Number.isNaN(t)), [data.commits]);
@@ -125,12 +132,23 @@ export function App({ data }: { data: RepoData }) {
     setPage(1);
   }, []);
 
+  // The date range updates on every pixel of a slider drag; debouncing the
+  // value that actually drives filtering/aggregation keeps that drag smooth
+  // instead of recomputing every derived stat (coupling, growth, etc.) on
+  // each intermediate position. The slider and density chart still read the
+  // live dateFrom/dateTo below, so dragging itself feels instant.
+  const debouncedDateFrom = useDebouncedValue(dateFrom, 120);
+  const debouncedDateTo = useDebouncedValue(dateTo, 120);
+  const debouncedFileFilter = useDebouncedValue(fileFilter, 150);
+  const debouncedMessageFilter = useDebouncedValue(messageFilter, 150);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 150);
+
   const filteredCommits = useMemo(() => {
-    const fromMs = dateFrom.getTime();
-    const toMs = dateTo.getTime();
-    const fileQ = fileFilter.trim().toLowerCase();
-    const msgQ = messageFilter.trim().toLowerCase();
-    const searchQ = searchQuery.trim().toLowerCase();
+    const fromMs = debouncedDateFrom.getTime();
+    const toMs = debouncedDateTo.getTime();
+    const fileQ = debouncedFileFilter.trim().toLowerCase();
+    const msgQ = debouncedMessageFilter.trim().toLowerCase();
+    const searchQ = debouncedSearchQuery.trim().toLowerCase();
     return data.commits
       .filter((c) => {
         const t = new Date(c.date).getTime();
@@ -148,7 +166,7 @@ export function App({ data }: { data: RepoData }) {
         return true;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [data.commits, dateFrom, dateTo, authorFilter, fileFilter, messageFilter, searchQuery]);
+  }, [data.commits, debouncedDateFrom, debouncedDateTo, authorFilter, debouncedFileFilter, debouncedMessageFilter, debouncedSearchQuery]);
 
   const density = useMemo(() => computeDailyDensity(data.commits), [data.commits]);
   const kpi = useMemo(() => computeKpi(filteredCommits), [filteredCommits]);

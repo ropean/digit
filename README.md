@@ -7,18 +7,23 @@ Git 历史可视化 CLI：分析本地仓库的提交历史，生成一个自包
 ## 构建
 
 ```bash
-make build        # 等价于先 build-web 再 build-go
-./digit --help
+make build        # 等价于先 build-web 再 build-cli
+./digit --help     # Windows 下产物是 digit.exe
 ```
 
 前端（`web/`）基于 Vite + React + ECharts，使用 `vite-plugin-singlefile` 打包成单个
-`web/dist/index.html`，再由 Go 的 `go:embed` 内嵌进最终二进制。修改前端代码后需要
-重新执行 `make build-web`（或 `make build`）才能让 `go build` 嵌入最新产物。
+`web/dist/index.html`，再由 Go 的 `go:embed` 内嵌进最终二进制。**`web/dist/` 不提交到仓库**
+——它是构建产物，必须先跑 `make build-web`（或 `cd web && pnpm install && pnpm run build`）
+生成之后，`go build .` / `make build-cli` 才能成功（`go:embed` 要求该目录在编译时已存在，
+新 clone 下来直接 `go build .` 会报 `pattern web/dist: no matching files found`，这是预期行为，
+先跑一次 `make build-web` 即可）。修改前端代码后同样需要重新执行 `make build-web` 才能让
+`go build` 嵌入最新产物。
 
 ## 用法
 
 ```bash
-digit .                                   # 分析当前目录仓库，生成 ./digit-report.html
+digit .                                   # 分析当前目录仓库，默认写入
+                                           # ~/Downloads/digit-reports/<仓库名>-<hash>/report-<时间戳>.html
 digit /path/to/repo -o report.html
 digit . --since 2026-01-01 --until 2026-07-01
 digit . --author "Wei,someone@example.com"
@@ -41,7 +46,7 @@ internal/model       共享数据结构
 internal/aggregate   include/exclude glob 过滤 + 作者/文件维度聚合
 internal/render      HTML 模板注入 / JSON 输出
 web/             前端源码（Vite + React + ECharts）
-web/dist/        前端构建产物（已提交，供 go:embed 直接使用）
+web/dist/        前端构建产物（不提交，go:embed 引入前需先 make build-web 生成）
 ```
 
 ## 报告板块
