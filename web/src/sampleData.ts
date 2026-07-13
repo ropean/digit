@@ -61,9 +61,9 @@ export const sampleData: RepoData = {
     { language: "JSON", bytes: 3000, files: 3 },
   ],
   branchStats: [
-    { name: "main", lastCommitDate: new Date(start + dayCursor * 86400000).toISOString(), lastCommitHash: "abc0", aheadOfDefault: 0, behindDefault: 0, aheadBehindKnown: true, merged: false, isRemote: false, isDefault: true },
-    { name: "feature/x", lastCommitDate: new Date(start + (dayCursor - 5) * 86400000).toISOString(), lastCommitHash: "abc1", aheadOfDefault: 4, behindDefault: 12, aheadBehindKnown: true, merged: false, isRemote: false, isDefault: false },
-    { name: "feature/stale-thing", lastCommitDate: new Date(start).toISOString(), lastCommitHash: "abc2", aheadOfDefault: 2, behindDefault: 180, aheadBehindKnown: true, merged: false, isRemote: false, isDefault: false },
+    { name: "main", lastCommitDate: new Date(start + dayCursor * 86400000).toISOString(), lastCommitHash: "abc0", aheadOfCurrent: 0, behindCurrent: 0, aheadBehindKnown: true, merged: false, isRemote: false, isCurrent: true },
+    { name: "feature/x", lastCommitDate: new Date(start + (dayCursor - 5) * 86400000).toISOString(), lastCommitHash: "abc1", aheadOfCurrent: 4, behindCurrent: 12, aheadBehindKnown: true, merged: false, isRemote: false, isCurrent: false },
+    { name: "feature/stale-thing", lastCommitDate: new Date(start).toISOString(), lastCommitHash: "abc2", aheadOfCurrent: 2, behindCurrent: 180, aheadBehindKnown: true, merged: false, isRemote: false, isCurrent: false },
   ],
   tagStats: [
     { name: "v1.0.0", date: new Date(start + 90 * 86400000).toISOString(), hash: "abc90", annotated: true },

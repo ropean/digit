@@ -6,7 +6,7 @@ import { formatDate } from "../format";
 import { useElementWidth } from "../useElementWidth";
 
 const MIN_CELL = 8;
-const MAX_CELL = 13;
+const MAX_CELL = 16;
 const GAP = 3;
 const LABEL_WIDTH = 34;
 const CELL_LEGEND = 11;
@@ -43,6 +43,12 @@ export function ContributionHeatmap({ commits }: { commits: Commit[] }) {
   const rawStep = width > 0 && weeks > 0 ? available / weeks : MAX_CELL + GAP;
   const step = Math.min(MAX_CELL + GAP, Math.max(MIN_CELL + GAP, rawStep));
   const cell = step - GAP;
+  // The controls row (year picker + Less/More legend) lines up with the
+  // grid's actual rendered width, not the full card width — otherwise, once
+  // cell size hits the MAX_CELL clamp on a wide card, the grid stops short
+  // of the right edge while the legend (pinned to the card edge) doesn't,
+  // leaving a visually disconnected gap between them.
+  const gridContentWidth = weeks * cell + Math.max(0, weeks - 1) * GAP;
 
   return (
     <div ref={wrapRef}>
@@ -83,7 +89,7 @@ export function ContributionHeatmap({ commits }: { commits: Commit[] }) {
           </div>
         </div>
       </div>
-      <div className="heatmap-controls">
+      <div className="heatmap-controls" style={{ marginLeft: LABEL_WIDTH, width: gridContentWidth }}>
         <div className="heatmap-years">
           {years.map((y) => (
             <button

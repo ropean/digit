@@ -8,9 +8,9 @@ export function BranchesSection({ branches }: { branches: BranchStat[] }) {
   const now = Date.now();
   const staleCutoff = now - STALE_DAYS * 86400000;
   const active = branches.filter((b) => new Date(b.lastCommitDate).getTime() >= staleCutoff);
-  const stale = branches.filter((b) => !b.merged && !b.isDefault && new Date(b.lastCommitDate).getTime() < staleCutoff);
+  const stale = branches.filter((b) => !b.merged && !b.isCurrent && new Date(b.lastCommitDate).getTime() < staleCutoff);
   const merged = branches.filter((b) => b.merged);
-  const unmerged = branches.filter((b) => !b.merged && !b.isDefault);
+  const unmerged = branches.filter((b) => !b.merged && !b.isCurrent);
 
   const rows = [...branches].sort((a, b) => new Date(b.lastCommitDate).getTime() - new Date(a.lastCommitDate).getTime()).slice(0, MAX_ROWS);
 
@@ -50,7 +50,7 @@ export function BranchesSection({ branches }: { branches: BranchStat[] }) {
               <tr>
                 <th>Branch</th>
                 <th>Last commit</th>
-                <th>Ahead / behind default</th>
+                <th>Ahead / behind current</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -67,15 +67,15 @@ export function BranchesSection({ branches }: { branches: BranchStat[] }) {
                     <td className="ahead-behind">
                       {b.aheadBehindKnown ? (
                         <>
-                          <span className="plus-text">+{b.aheadOfDefault}</span> / <span className="minus-text">−{b.behindDefault}</span>
+                          <span className="plus-text">+{b.aheadOfCurrent}</span> / <span className="minus-text">−{b.behindCurrent}</span>
                         </>
                       ) : (
                         "—"
                       )}
                     </td>
                     <td>
-                      {b.isDefault ? (
-                        <span className="badge accent">default</span>
+                      {b.isCurrent ? (
+                        <span className="badge accent">current</span>
                       ) : b.merged ? (
                         <span className="badge good">merged</span>
                       ) : isStale ? (

@@ -47,6 +47,12 @@ import { CommitDrawer } from "./components/CommitDrawer";
 
 const DAY_MS = 86400000;
 
+// The report's title/header show just the repo folder's name, not its full
+// (possibly long, possibly just ".") path.
+function deriveRepoName(repoPath: string): string {
+  return repoPath.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || repoPath;
+}
+
 const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", group: "Overview" },
   { id: "commits", label: "Commits", group: "Activity" },
@@ -72,10 +78,10 @@ export function App({ data }: { data: RepoData }) {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
+  const repoName = useMemo(() => deriveRepoName(data.repoPath), [data.repoPath]);
   useEffect(() => {
-    const repoName = data.repoPath.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || data.repoPath;
     document.title = `${repoName} digit report on ${formatCompactTimestamp(data.generatedAt)}`;
-  }, [data.repoPath, data.generatedAt]);
+  }, [repoName, data.generatedAt]);
   const dark = theme === "dark";
 
   const commitTimes = useMemo(() => data.commits.map((c) => new Date(c.date).getTime()).filter((t) => !Number.isNaN(t)), [data.commits]);
@@ -271,7 +277,7 @@ export function App({ data }: { data: RepoData }) {
       license: data.license,
       primaryLanguage,
       avgCommitsPerDay: allCommitStats.avgPerDay,
-      defaultBranch: data.filters.branch,
+      currentBranch: data.filters.branch,
       lastCommitDate: commitTimes.length ? maxDate : undefined,
       lastReleaseDate,
       totalFiles: treeCounts.files,
@@ -339,7 +345,8 @@ export function App({ data }: { data: RepoData }) {
   return (
     <div className="app">
       <Header
-        repoName={data.repoPath}
+        repoName={repoName}
+        repoPath={data.repoPath}
         searchQuery={searchQuery}
         onSearchChange={(v) => {
           setSearchQuery(v);

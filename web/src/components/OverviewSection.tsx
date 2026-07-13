@@ -59,7 +59,7 @@ interface RepoInfo {
   license?: string;
   primaryLanguage?: string;
   avgCommitsPerDay: number;
-  defaultBranch?: string;
+  currentBranch?: string;
   lastCommitDate?: Date;
   lastReleaseDate?: string;
   totalFiles: number;
@@ -208,8 +208,8 @@ export function OverviewSection({
         <div className="facts-group-label">Identity</div>
         <div className="kpi-grid tier3">
           <div className="kpi-card">
-            <div className="kpi-label">Default branch</div>
-            <div className="kpi-value">{repo.defaultBranch || "—"}</div>
+            <div className="kpi-label">Current branch</div>
+            <div className="kpi-value">{repo.currentBranch || "—"}</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-label">Primary language</div>

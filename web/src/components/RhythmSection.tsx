@@ -7,7 +7,7 @@ import { useElementWidth } from "../useElementWidth";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MIN_CELL = 14;
-const MAX_CELL = 30;
+const MAX_CELL = 26;
 const GAP = 3;
 const LABEL_WIDTH = 36;
 const HOURS = 24;
@@ -46,80 +46,78 @@ export function RhythmSection({ commits, commitStats }: { commits: Commit[]; com
   const step = Math.min(MAX_CELL + GAP, Math.max(MIN_CELL + GAP, rawStep));
   const cell = step - GAP;
 
+  const stats = [
+    { label: "Merge commits", value: formatNum(commitStats.mergeCommits) },
+    { label: "Avg commits / day", value: commitStats.avgPerDay.toFixed(1) },
+    { label: "Avg files / commit", value: commitStats.avgFilesChanged.toFixed(1) },
+    { label: "Weekend commits", value: `${commitStats.weekendPct.toFixed(0)}%` },
+    { label: "Work-hours commits", value: `${commitStats.workHoursPct.toFixed(0)}%` },
+  ];
+
   return (
     <div id="sec-rhythm" className="section">
       <div className="section-title">Rhythm</div>
       <div className="section-subtitle">When commits happen — weekday × hour (viewer's local time zone)</div>
 
-      <div className="kpi-grid">
-        <div className="kpi-card">
-          <div className="kpi-label">Merge commits</div>
-          <div className="kpi-value">{formatNum(commitStats.mergeCommits)}</div>
+      <div className="rhythm-layout">
+        <div className="rhythm-stats">
+          {stats.map((s) => (
+            <div className="kpi-card" key={s.label}>
+              <div className="kpi-label">{s.label}</div>
+              <div className="kpi-value">{s.value}</div>
+            </div>
+          ))}
         </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Avg commits / day</div>
-          <div className="kpi-value">{commitStats.avgPerDay.toFixed(1)}</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Avg files / commit</div>
-          <div className="kpi-value">{commitStats.avgFilesChanged.toFixed(1)}</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Weekend commits</div>
-          <div className="kpi-value">{commitStats.weekendPct.toFixed(0)}%</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-label">Work-hours commits</div>
-          <div className="kpi-value">{commitStats.workHoursPct.toFixed(0)}%</div>
-        </div>
-      </div>
 
-      {commits.length === 0 ? (
-        <div className="empty-state">No commits in this range</div>
-      ) : (
-        <>
-          <div ref={wrapRef}>
-            <div style={{ display: "flex" }}>
-              <div className="heatmap-daylabels" style={{ width: LABEL_WIDTH - 4, marginTop: 16 }}>
-                {WEEKDAY_LABELS.map((label) => (
-                  <span key={label} style={{ height: cell, marginBottom: GAP, lineHeight: `${cell}px` }}>{label}</span>
-                ))}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", marginBottom: 4 }}>
-                  {Array.from({ length: HOURS }, (_, h) => (
-                    <div key={h} style={{ width: cell + GAP, fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
-                      {h % 3 === 0 ? h : ""}
-                    </div>
-                  ))}
-                </div>
-                {grid.map((row, day) => (
-                  <div key={day} style={{ display: "flex", marginBottom: GAP }}>
-                    {row.map((count, hour) => (
-                      <div
-                        key={hour}
-                        className="heatmap-cell"
-                        title={`${WEEKDAY_LABELS[day]} ${hour}:00 — ${count} commit${count === 1 ? "" : "s"}`}
-                        style={{
-                          width: cell,
-                          height: cell,
-                          marginRight: GAP,
-                          background: heatmapColor(levelFor(count, maxCount), "var(--surface-2)"),
-                        }}
-                      />
+        <div className="rhythm-chart">
+          {commits.length === 0 ? (
+            <div className="empty-state">No commits in this range</div>
+          ) : (
+            <>
+              <div ref={wrapRef}>
+                <div style={{ display: "flex" }}>
+                  <div className="heatmap-daylabels" style={{ width: LABEL_WIDTH - 4, marginTop: 16 }}>
+                    {WEEKDAY_LABELS.map((label) => (
+                      <span key={label} style={{ height: cell, marginBottom: GAP, lineHeight: `${cell}px` }}>{label}</span>
                     ))}
                   </div>
-                ))}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", marginBottom: 4 }}>
+                      {Array.from({ length: HOURS }, (_, h) => (
+                        <div key={h} style={{ width: cell + GAP, fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
+                          {h % 3 === 0 ? h : ""}
+                        </div>
+                      ))}
+                    </div>
+                    {grid.map((row, day) => (
+                      <div key={day} style={{ display: "flex", marginBottom: GAP }}>
+                        {row.map((count, hour) => (
+                          <div
+                            key={hour}
+                            className="heatmap-cell"
+                            title={`${WEEKDAY_LABELS[day]} ${hour}:00 — ${count} commit${count === 1 ? "" : "s"}`}
+                            style={{
+                              width: cell,
+                              height: cell,
+                              marginRight: GAP,
+                              background: heatmapColor(levelFor(count, maxCount), "var(--surface-2)"),
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          {peak.count > 0 && (
-            <div className="section-subtitle" style={{ marginTop: 10, marginBottom: 0 }}>
-              Peak: {WEEKDAY_LABELS[peak.day]} at {peak.hour}:00 ({formatNum(peak.count)} commits)
-            </div>
+              {peak.count > 0 && (
+                <div className="section-subtitle" style={{ marginTop: 10, marginBottom: 0 }}>
+                  Peak: {WEEKDAY_LABELS[peak.day]} at {peak.hour}:00 ({formatNum(peak.count)} commits)
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

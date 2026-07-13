@@ -9,19 +9,19 @@ and a commit-keyword cloud.
 ## Build
 
 ```bash
-make build        # equivalent to build-web then build-cli
-./digit --help     # produces digit.exe on Windows
+npm run build        # equivalent to build-web then build-cli
+./digit --help        # produces digit.exe on Windows
 ```
 
 The frontend (`web/`) is Vite + React + ECharts, bundled into a single
 `web/dist/index.html` via `vite-plugin-singlefile`, then embedded into the final
 binary with Go's `go:embed`. **`web/dist/` is not committed** — it's a build
-artifact, so you must run `make build-web` (or `cd web && pnpm install && pnpm run
-build`) first; only then will `go build .` / `make build-cli` succeed (`go:embed`
+artifact, so you must run `npm run build-web` (or `cd web && pnpm install && pnpm run
+build`) first; only then will `go build .` / `npm run build-cli` succeed (`go:embed`
 requires that directory to exist at compile time — a fresh clone running `go build
 .` directly will fail with `pattern web/dist: no matching files found`, which is
-expected; just run `make build-web` once). Frontend changes likewise need a
-`make build-web` rerun before `go build` picks up the new output.
+expected; just run `npm run build-web` once). Frontend changes likewise need a
+`npm run build-web` rerun before `go build` picks up the new output.
 
 ## Usage
 
@@ -50,7 +50,7 @@ internal/model       shared data structures
 internal/aggregate   include/exclude glob filtering + author/file rollups
 internal/render      HTML template injection / JSON output
 web/                 frontend source (Vite + React + ECharts)
-web/dist/            frontend build output (not committed; run make build-web first)
+web/dist/            frontend build output (not committed; run npm run build-web first)
 ```
 
 ## Report sections

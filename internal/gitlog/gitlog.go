@@ -394,9 +394,12 @@ type branchRefInfo struct {
 const aheadBehindCap = 60
 
 // BranchDetails enriches branchNames (as returned by Branches) with last
-// commit date/hash, merged-into-defaultRef state, and ahead/behind counts
-// relative to defaultRef (capped to the most recently active branches).
-func BranchDetails(repoPath, defaultRef string, branchNames []string) ([]model.BranchStat, error) {
+// commit date/hash, merged-into-currentRef state, and ahead/behind counts
+// relative to currentRef (capped to the most recently active branches).
+// currentRef is the branch the report is being generated for (CLI's
+// --branch or the checked-out branch), not necessarily the repo's
+// configured default branch.
+func BranchDetails(repoPath, currentRef string, branchNames []string) ([]model.BranchStat, error) {
 	out, err := runGit(repoPath, "for-each-ref",
 		"--format=%(refname)"+fieldSep+"%(refname:short)"+fieldSep+"%(committerdate:iso-strict)"+fieldSep+"%(objectname)",
 		"refs/heads", "refs/remotes")
@@ -418,8 +421,8 @@ func BranchDetails(repoPath, defaultRef string, branchNames []string) ([]model.B
 	}
 
 	merged := map[string]bool{}
-	if defaultRef != "" {
-		if mergedOut, merr := runGit(repoPath, "branch", "-a", "--format=%(refname:short)", "--merged", defaultRef); merr == nil {
+	if currentRef != "" {
+		if mergedOut, merr := runGit(repoPath, "branch", "-a", "--format=%(refname:short)", "--merged", currentRef); merr == nil {
 			for _, name := range splitNonEmptyLines(mergedOut) {
 				merged[strings.TrimPrefix(name, "* ")] = true
 			}
@@ -442,16 +445,16 @@ func BranchDetails(repoPath, defaultRef string, branchNames []string) ([]model.B
 			LastCommitHash: info.hash,
 			Merged:         merged[info.short],
 			IsRemote:       strings.HasPrefix(info.fullRef, "refs/remotes/"),
-			IsDefault:      defaultRef != "" && info.short == defaultRef,
+			IsCurrent:      currentRef != "" && info.short == currentRef,
 		}
 		switch {
-		case bs.IsDefault:
+		case bs.IsCurrent:
 			bs.AheadBehindKnown = true
 			bs.Merged = false // trivially "merged into itself" isn't a meaningful status
-		case defaultRef != "" && i < aheadBehindCap:
-			if ahead, behind, aerr := aheadBehindCount(repoPath, defaultRef, info.short); aerr == nil {
-				bs.AheadOfDefault = ahead
-				bs.BehindDefault = behind
+		case currentRef != "" && i < aheadBehindCap:
+			if ahead, behind, aerr := aheadBehindCount(repoPath, currentRef, info.short); aerr == nil {
+				bs.AheadOfCurrent = ahead
+				bs.BehindCurrent = behind
 				bs.AheadBehindKnown = true
 			}
 		}

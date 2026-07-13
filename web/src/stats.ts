@@ -687,7 +687,7 @@ export function computeHealthScore(input: HealthInput): HealthScore {
   breakdown.push({ label: "Contributor diversity", score: busFactorScore, detail: `Bus factor ${input.busFactor.count} of ${input.authorStats.length}` });
 
   const staleCutoff = input.now.getTime() - STALE_BRANCH_DAYS * DAY_MS;
-  const unmergedBranches = input.branchStats.filter((b) => !b.merged && !b.isDefault);
+  const unmergedBranches = input.branchStats.filter((b) => !b.merged && !b.isCurrent);
   const staleBranches = unmergedBranches.filter((b) => new Date(b.lastCommitDate).getTime() < staleCutoff);
   const hygieneScore = unmergedBranches.length === 0 ? 100 : clampScore(100 - (staleBranches.length / unmergedBranches.length) * 100);
   breakdown.push({ label: "Branch hygiene", score: hygieneScore, detail: `${staleBranches.length} stale of ${unmergedBranches.length} unmerged branches` });
@@ -738,7 +738,7 @@ export function computeInsights(input: HealthInput & { fileStats: FileAgg[]; hea
   }
 
   const staleCutoff = input.now.getTime() - STALE_BRANCH_DAYS * DAY_MS;
-  const staleBranches = input.branchStats.filter((b) => !b.merged && !b.isDefault && new Date(b.lastCommitDate).getTime() < staleCutoff);
+  const staleBranches = input.branchStats.filter((b) => !b.merged && !b.isCurrent && new Date(b.lastCommitDate).getTime() < staleCutoff);
   if (staleBranches.length > 0) {
     insights.push({
       severity: "warning",

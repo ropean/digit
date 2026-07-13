@@ -199,6 +199,12 @@ button, input, select {
 }
 .year-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* ---------- rhythm ---------- */
+.rhythm-layout { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+.rhythm-stats { flex: 0 0 220px; display: flex; flex-direction: column; gap: 10px; }
+.rhythm-stats .kpi-card { padding: 12px 14px; }
+.rhythm-chart { flex: 1 1 460px; min-width: 320px; }
+
 /* ---------- kpi ---------- */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 14px 0 22px; }
 .kpi-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }

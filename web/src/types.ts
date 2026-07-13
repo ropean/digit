@@ -46,12 +46,12 @@ export interface BranchStat {
   name: string;
   lastCommitDate: string;
   lastCommitHash: string;
-  aheadOfDefault: number;
-  behindDefault: number;
+  aheadOfCurrent: number;
+  behindCurrent: number;
   aheadBehindKnown: boolean;
   merged: boolean;
   isRemote: boolean;
-  isDefault: boolean;
+  isCurrent: boolean;
 }
 
 export interface TagStat {

@@ -59,12 +59,16 @@ type BranchStat struct {
 	Name             string    `json:"name"`
 	LastCommitDate   time.Time `json:"lastCommitDate"`
 	LastCommitHash   string    `json:"lastCommitHash"`
-	AheadOfDefault   int       `json:"aheadOfDefault"`
-	BehindDefault    int       `json:"behindDefault"`
+	AheadOfCurrent   int       `json:"aheadOfCurrent"`
+	BehindCurrent    int       `json:"behindCurrent"`
 	AheadBehindKnown bool      `json:"aheadBehindKnown"`
 	Merged           bool      `json:"merged"`
 	IsRemote         bool      `json:"isRemote"`
-	IsDefault        bool      `json:"isDefault"`
+	// IsCurrent marks the branch the report was generated against (the CLI's
+	// --branch or the checked-out branch) — not necessarily the repo's
+	// configured default branch, so the report can be read as "here's the
+	// analysis for branch X" regardless of which branch that is.
+	IsCurrent bool `json:"isCurrent"`
 }
 
 // TagStat is per-tag metadata used for release-cadence reporting.

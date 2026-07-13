@@ -79,6 +79,14 @@ func runGitViz(c *cobra.Command, args []string) error {
 	if flagFormat != "html" && flagFormat != "json" {
 		return fmt.Errorf("--format only supports html or json, got: %s", flagFormat)
 	}
+	// Resolved once up front: repoPath as given (e.g. ".") is fine for git
+	// commands (cwd-relative), but the report's displayed repo name is
+	// derived from this path's basename, and "." has none — the report
+	// would otherwise show "." as the title instead of the actual folder.
+	absRepo, aerr := filepath.Abs(repoPath)
+	if aerr != nil {
+		absRepo = repoPath
+	}
 
 	branch := flagBranch
 	if branch == "" && !flagAllBranches {
@@ -154,7 +162,7 @@ func runGitViz(c *cobra.Command, args []string) error {
 		MaxCommits: flagMaxCommits, DiffContent: flagDiffContent,
 	}
 
-	data := aggregate.BuildRepoData(repoPath, commits, branches, tags, filters, truncated)
+	data := aggregate.BuildRepoData(absRepo, commits, branches, tags, filters, truncated)
 	data.Tree = tree
 	data.RemoteURL = gitlog.RemoteURL(repoPath)
 	if lines, lerr := gitlog.CurrentLines(repoPath, treeRef); lerr == nil {
@@ -184,10 +192,6 @@ func runGitViz(c *cobra.Command, args []string) error {
 
 	outputPath := flagOutput
 	if outputPath == "" {
-		absRepo, aerr := filepath.Abs(repoPath)
-		if aerr != nil {
-			absRepo = repoPath
-		}
 		outputPath, err = defaultOutputPath(absRepo, flagFormat)
 		if err != nil {
 			return err
