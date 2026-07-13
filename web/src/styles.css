@@ -147,12 +147,22 @@ button, input, select {
   border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500; white-space: nowrap;
 }
 .quick-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.date-inputs-row { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; }
+.quick-btn:disabled { opacity: 0.5; cursor: default; }
 .date-input {
   background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--border);
   border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: var(--mono); color-scheme: light dark;
 }
-.date-sep { color: var(--text-muted); font-size: 12px; }
+
+/* Flight-search-style date range popover, opened from the "Custom range" button */
+.popover-backdrop { position: fixed; inset: 0; z-index: 20; background: transparent; }
+.custom-range-popover {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 21; min-width: 240px;
+  background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: 8px;
+  box-shadow: var(--shadow); padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.popover-row { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-secondary); }
+.popover-row .date-input { width: 100%; }
+.popover-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 .clear-btn {
   margin-left: auto; background: transparent; color: var(--accent); border: none;
   font-size: 12.5px; cursor: pointer; text-decoration: underline; white-space: nowrap;

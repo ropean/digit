@@ -12,8 +12,7 @@ interface Props {
   quickRange: string;
   density: DensityDay[];
   onQuickRange: (id: string) => void;
-  onCustomFrom: (iso: string) => void;
-  onCustomTo: (iso: string) => void;
+  onApplyCustomRange: (fromIso: string, toIso: string) => void;
   onRangeFrom: (dayIndex: number) => void;
   onRangeTo: (dayIndex: number) => void;
   hasActiveFilters: boolean;
@@ -31,11 +30,23 @@ const QUICK_DEFS = [
 
 export function TimelineFilterBar(props: Props) {
   const { minDate, maxDate, dateFrom, dateTo, quickRange, density } = props;
-  const [showCustom, setShowCustom] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [draftFrom, setDraftFrom] = useState("");
+  const [draftTo, setDraftTo] = useState("");
   const totalDaySpan = Math.max(1, Math.round((maxDate.getTime() - minDate.getTime()) / DAY_MS));
   const fromDayIndex = Math.round((dateFrom.getTime() - minDate.getTime()) / DAY_MS);
   const toDayIndex = Math.round((dateTo.getTime() - minDate.getTime()) / DAY_MS);
   const maxDensity = useMemo(() => Math.max(1, ...density.map((d) => d.count)), [density]);
+
+  const openCustom = () => {
+    setDraftFrom(formatDate(dateFrom.toISOString()));
+    setDraftTo(formatDate(dateTo.toISOString()));
+    setCustomOpen(true);
+  };
+  const applyCustom = () => {
+    if (draftFrom && draftTo) props.onApplyCustomRange(draftFrom, draftTo);
+    setCustomOpen(false);
+  };
 
   return (
     <div className="timeline-bar">
@@ -49,35 +60,41 @@ export function TimelineFilterBar(props: Props) {
             {q.label}
           </button>
         ))}
-        <button
-          className={"quick-btn" + (showCustom ? " active" : "")}
-          onClick={() => setShowCustom((v) => !v)}
-        >
-          Custom range…
-        </button>
+        <div style={{ position: "relative" }}>
+          <button
+            className={"quick-btn" + (quickRange === "custom" ? " active" : "")}
+            onClick={openCustom}
+          >
+            Custom range…
+          </button>
+          {customOpen && (
+            <>
+              <div className="popover-backdrop" onClick={() => setCustomOpen(false)} />
+              <div className="custom-range-popover">
+                <div className="popover-row">
+                  <label>From</label>
+                  <input type="date" className="date-input" value={draftFrom} onChange={(e) => setDraftFrom(e.target.value)} />
+                </div>
+                <div className="popover-row">
+                  <label>To</label>
+                  <input type="date" className="date-input" value={draftTo} onChange={(e) => setDraftTo(e.target.value)} />
+                </div>
+                <div className="popover-actions">
+                  <button className="pager-btn" onClick={() => setCustomOpen(false)}>Cancel</button>
+                  <button className="quick-btn active" onClick={applyCustom} disabled={!draftFrom || !draftTo}>
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
         {props.hasActiveFilters && (
           <button className="clear-btn" onClick={props.onClearFilters}>
             Clear filters ({props.filteredCount} / {props.totalCount})
           </button>
         )}
       </div>
-      {showCustom && (
-        <div className="date-inputs-row">
-          <input
-            type="date"
-            className="date-input"
-            value={formatDate(dateFrom.toISOString())}
-            onChange={(e) => e.target.value && props.onCustomFrom(e.target.value)}
-          />
-          <span className="date-sep">→</span>
-          <input
-            type="date"
-            className="date-input"
-            value={formatDate(dateTo.toISOString())}
-            onChange={(e) => e.target.value && props.onCustomTo(e.target.value)}
-          />
-        </div>
-      )}
       <div className="density-wrap">
         <div className="density-bars">
           {density.map((d) => {

@@ -94,26 +94,18 @@ export function App({ data }: { data: RepoData }) {
     [minDate, maxDate],
   );
 
-  const handleCustomFrom = useCallback(
-    (iso: string) => {
-      const candidate = new Date(iso + "T00:00:00");
-      setQuickRange("custom");
-      setDateFrom(candidate);
-      if (candidate > dateTo) setDateTo(candidate);
-      setPage(1);
-    },
-    [dateTo],
-  );
-  const handleCustomTo = useCallback(
-    (iso: string) => {
-      const candidate = new Date(iso + "T23:59:59");
-      setQuickRange("custom");
-      setDateTo(candidate);
-      if (candidate < dateFrom) setDateFrom(candidate);
-      setPage(1);
-    },
-    [dateFrom],
-  );
+  // Applied atomically from the custom-range popover's "Apply" button,
+  // rather than live as each field changes — swap if the user entered them
+  // backwards instead of silently clamping to an empty range.
+  const handleApplyCustomRange = useCallback((fromIso: string, toIso: string) => {
+    let from = new Date(fromIso + "T00:00:00");
+    let to = new Date(toIso + "T23:59:59");
+    if (from > to) [from, to] = [new Date(toIso + "T00:00:00"), new Date(fromIso + "T23:59:59")];
+    setQuickRange("custom");
+    setDateFrom(from);
+    setDateTo(to);
+    setPage(1);
+  }, []);
   const handleRangeFrom = useCallback(
     (dayIndex: number) => {
       const candidate = new Date(minDate.getTime() + dayIndex * DAY_MS);
@@ -235,8 +227,7 @@ export function App({ data }: { data: RepoData }) {
         quickRange={quickRange}
         density={density}
         onQuickRange={handleQuickRange}
-        onCustomFrom={handleCustomFrom}
-        onCustomTo={handleCustomTo}
+        onApplyCustomRange={handleApplyCustomRange}
         onRangeFrom={handleRangeFrom}
         onRangeTo={handleRangeTo}
         hasActiveFilters={hasActiveFilters}
