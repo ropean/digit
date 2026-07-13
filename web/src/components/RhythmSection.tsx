@@ -3,10 +3,14 @@ import type { Commit } from "../types";
 import type { CommitStats } from "../stats";
 import { heatmapColor } from "../theme";
 import { formatNum } from "../format";
+import { useElementWidth } from "../useElementWidth";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const CELL = 15;
+const MIN_CELL = 14;
+const MAX_CELL = 30;
 const GAP = 3;
+const LABEL_WIDTH = 36;
+const HOURS = 24;
 
 function levelFor(count: number, maxCount: number): number {
   if (count <= 0 || maxCount <= 0) return 0;
@@ -35,6 +39,12 @@ export function RhythmSection({ commits, commitStats }: { commits: Commit[]; com
     }));
     return best;
   }, [grid]);
+
+  const [wrapRef, width] = useElementWidth<HTMLDivElement>();
+  const available = Math.max(0, width - LABEL_WIDTH);
+  const rawStep = width > 0 ? available / HOURS : MAX_CELL + GAP;
+  const step = Math.min(MAX_CELL + GAP, Math.max(MIN_CELL + GAP, rawStep));
+  const cell = step - GAP;
 
   return (
     <div id="sec-rhythm" className="section">
@@ -68,17 +78,17 @@ export function RhythmSection({ commits, commitStats }: { commits: Commit[]; com
         <div className="empty-state">No commits in this range</div>
       ) : (
         <>
-          <div className="heatmap-scroll">
+          <div ref={wrapRef}>
             <div style={{ display: "flex" }}>
-              <div className="heatmap-daylabels" style={{ width: 32, marginTop: 16 }}>
+              <div className="heatmap-daylabels" style={{ width: LABEL_WIDTH - 4, marginTop: 16 }}>
                 {WEEKDAY_LABELS.map((label) => (
-                  <span key={label} style={{ height: CELL, marginBottom: GAP, lineHeight: `${CELL}px` }}>{label}</span>
+                  <span key={label} style={{ height: cell, marginBottom: GAP, lineHeight: `${cell}px` }}>{label}</span>
                 ))}
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", marginBottom: 4 }}>
-                  {Array.from({ length: 24 }, (_, h) => (
-                    <div key={h} style={{ width: CELL + GAP, fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
+                  {Array.from({ length: HOURS }, (_, h) => (
+                    <div key={h} style={{ width: cell + GAP, fontSize: 9, color: "var(--text-muted)", textAlign: "center" }}>
                       {h % 3 === 0 ? h : ""}
                     </div>
                   ))}
@@ -91,8 +101,8 @@ export function RhythmSection({ commits, commitStats }: { commits: Commit[]; com
                         className="heatmap-cell"
                         title={`${WEEKDAY_LABELS[day]} ${hour}:00 — ${count} commit${count === 1 ? "" : "s"}`}
                         style={{
-                          width: CELL,
-                          height: CELL,
+                          width: cell,
+                          height: cell,
                           marginRight: GAP,
                           background: heatmapColor(levelFor(count, maxCount), "var(--surface-2)"),
                         }}

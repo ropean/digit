@@ -18,7 +18,7 @@ export function KeywordsSection({ keywords }: { keywords: KeywordCount[] }) {
                 key={k.word}
                 title={`${k.count} commits`}
                 style={{
-                  fontSize: `${13 + t * 22}px`,
+                  fontSize: `${14.5 + t * 22}px`,
                   color: t > 0.5 ? "var(--accent)" : "var(--text-secondary)",
                   fontWeight: t > 0.6 ? 700 : 500,
                   fontFamily: "var(--mono)",

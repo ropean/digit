@@ -37,7 +37,7 @@ export function FileHeatSection({ files, onSelectFile }: Props) {
                 title={`${f.path} — changed ${f.changeCount}× by ${f.authors.length} author${f.authors.length === 1 ? "" : "s"}, last modified ${timeAgo(f.lastModified)}`}
                 onClick={() => onSelectFile(f.path)}
                 style={{
-                  fontSize: `${11 + t * 8}px`,
+                  fontSize: `${12.5 + t * 8}px`,
                   padding: `${6 + t * 6}px ${10 + t * 6}px`,
                   background: `color-mix(in srgb, var(--accent) ${10 + t * 45}%, transparent)`,
                 }}

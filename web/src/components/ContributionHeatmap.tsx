@@ -3,10 +3,13 @@ import type { Commit } from "../types";
 import { commitYears, computeCommitHeatmapForYear } from "../stats";
 import { heatmapColor } from "../theme";
 import { formatDate } from "../format";
+import { useElementWidth } from "../useElementWidth";
 
-const CELL = 11;
+const MIN_CELL = 8;
+const MAX_CELL = 13;
 const GAP = 3;
-const STEP = CELL + GAP;
+const LABEL_WIDTH = 34;
+const CELL_LEGEND = 11;
 const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
 
 function levelFor(count: number, maxCount: number): number {
@@ -26,42 +29,51 @@ export function ContributionHeatmap({ commits }: { commits: Commit[] }) {
     () => (selectedYear != null ? computeCommitHeatmapForYear(commits, selectedYear) : null),
     [commits, selectedYear],
   );
+  const [wrapRef, width] = useElementWidth<HTMLDivElement>();
 
   if (!heatmap || years.length === 0) {
     return <div className="empty-state">Not enough data to plot a heatmap</div>;
   }
-  const gridWidth = heatmap.weeks.length * STEP - GAP;
+
+  // Cells scale to fill the measured container width (clamped to a sane
+  // range) instead of a fixed pixel size that leaves wide cards mostly
+  // empty or, on narrow ones, forces a horizontal scrollbar.
+  const weeks = heatmap.weeks.length;
+  const available = Math.max(0, width - LABEL_WIDTH);
+  const rawStep = width > 0 && weeks > 0 ? available / weeks : MAX_CELL + GAP;
+  const step = Math.min(MAX_CELL + GAP, Math.max(MIN_CELL + GAP, rawStep));
+  const cell = step - GAP;
 
   return (
-    <div>
+    <div ref={wrapRef}>
       <div className="heatmap-scroll">
-        <div className="heatmap-inner" style={{ width: gridWidth + 34 }}>
-          <div className="heatmap-months" style={{ marginLeft: 34 }}>
+        <div className="heatmap-inner">
+          <div className="heatmap-months" style={{ marginLeft: LABEL_WIDTH }}>
             {heatmap.monthLabels.map((m) => (
-              <span key={m.weekIndex} style={{ position: "absolute", left: m.weekIndex * STEP }}>
+              <span key={m.weekIndex} style={{ position: "absolute", left: m.weekIndex * step }}>
                 {m.label}
               </span>
             ))}
           </div>
           <div className="heatmap-body">
-            <div className="heatmap-daylabels">
+            <div className="heatmap-daylabels" style={{ width: LABEL_WIDTH - 8 }}>
               {DAY_LABELS.map((label, i) => (
-                <span key={i} style={{ height: CELL, marginBottom: i === 6 ? 0 : GAP }}>
+                <span key={i} style={{ height: cell, marginBottom: i === 6 ? 0 : GAP, lineHeight: `${cell}px` }}>
                   {label}
                 </span>
               ))}
             </div>
             <div className="heatmap-grid">
               {heatmap.weeks.map((week, wi) => (
-                <div key={wi} className="heatmap-week" style={{ width: CELL, marginRight: wi === heatmap.weeks.length - 1 ? 0 : GAP }}>
-                  {week.cells.map((cell, di) => {
-                    const level = levelFor(cell.count, heatmap.maxCount);
+                <div key={wi} className="heatmap-week" style={{ width: cell, marginRight: wi === heatmap.weeks.length - 1 ? 0 : GAP }}>
+                  {week.cells.map((cellData, di) => {
+                    const level = levelFor(cellData.count, heatmap.maxCount);
                     return (
                       <div
                         key={di}
                         className="heatmap-cell"
-                        style={{ width: CELL, height: CELL, marginBottom: di === 6 ? 0 : GAP, background: heatmapColor(level, "var(--surface-2)") }}
-                        title={cell.date ? `${cell.count} commit${cell.count === 1 ? "" : "s"} on ${formatDate(cell.date)}` : undefined}
+                        style={{ width: cell, height: cell, marginBottom: di === 6 ? 0 : GAP, background: heatmapColor(level, "var(--surface-2)") }}
+                        title={cellData.date ? `${cellData.count} commit${cellData.count === 1 ? "" : "s"} on ${formatDate(cellData.date)}` : undefined}
                       />
                     );
                   })}
@@ -87,7 +99,7 @@ export function ContributionHeatmap({ commits }: { commits: Commit[] }) {
         <div className="heatmap-legend">
           <span>Less</span>
           {[0, 1, 2, 3, 4].map((level) => (
-            <div key={level} className="heatmap-cell" style={{ width: CELL, height: CELL, background: heatmapColor(level, "var(--surface-2)") }} />
+            <div key={level} className="heatmap-cell" style={{ width: CELL_LEGEND, height: CELL_LEGEND, background: heatmapColor(level, "var(--surface-2)") }} />
           ))}
           <span>More</span>
         </div>
