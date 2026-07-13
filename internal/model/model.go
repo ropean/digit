@@ -68,6 +68,7 @@ type RepoData struct {
 	Commits     []Commit     `json:"commits"`
 	Authors     []AuthorStat `json:"authors"`
 	Files       []FileStat   `json:"files"`
+	Tree        []string     `json:"tree"`
 	Truncated   bool         `json:"truncated"`
 	Filters     Filters      `json:"filters"`
 }

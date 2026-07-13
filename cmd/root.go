@@ -138,6 +138,15 @@ func runGitViz(c *cobra.Command, args []string) error {
 		return fmt.Errorf("读取标签列表失败: %w", err)
 	}
 
+	treeRef := branch
+	if treeRef == "" {
+		treeRef = "HEAD"
+	}
+	tree, err := gitlog.Tree(repoPath, treeRef)
+	if err != nil {
+		return fmt.Errorf("读取项目文件树失败: %w", err)
+	}
+
 	filters := model.Filters{
 		Since: flagSince, Until: flagUntil, Authors: opts.Authors,
 		Branch: branch, AllBranches: flagAllBranches,
@@ -146,6 +155,7 @@ func runGitViz(c *cobra.Command, args []string) error {
 	}
 
 	data := aggregate.BuildRepoData(repoPath, commits, branches, tags, filters, truncated)
+	data.Tree = tree
 
 	outputPath := flagOutput
 	if outputPath == "" {

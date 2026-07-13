@@ -56,6 +56,7 @@ export interface RepoData {
   commits: Commit[];
   authors: AuthorStat[];
   files: FileStat[];
+  tree: string[];
   truncated: boolean;
   filters: Filters;
 }

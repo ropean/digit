@@ -52,6 +52,8 @@ web/dist/        前端构建产物（不提交，go:embed 引入前需先 make 
 ## 报告板块
 
 - **Overview** — KPI 卡片 + 按周聚合的代码规模趋势图
+- **Structure** — 项目文件树（`git ls-tree` 读取受跟踪文件，天然遵循 .gitignore，只展示源码），
+  可展开/折叠 + 按名称筛选
 - **Commits** — 按作者/文件路径/message 关键词筛选 + 分页表格，点击一行打开右侧详情抽屉
   （抽屉内可展开每个文件的真实 diff —— 需要生成报告时加 `--diff-content`，否则只显示增删行数）
 - **Contributors** — 按提交数排行，点击可联动筛选 Commits

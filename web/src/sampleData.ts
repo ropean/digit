@@ -40,4 +40,15 @@ export const sampleData: RepoData = {
   }),
   authors: [],
   files: [],
+  tree: [
+    "src/app.ts",
+    "src/api.ts",
+    "src/table.tsx",
+    "src/store.ts",
+    "src/components/Button.tsx",
+    "src/components/Modal.tsx",
+    "tests/app.test.ts",
+    "README.md",
+    "package.json",
+  ],
 };

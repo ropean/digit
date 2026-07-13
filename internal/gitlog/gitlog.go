@@ -272,6 +272,18 @@ func Tags(repoPath string) ([]string, error) {
 	return splitNonEmptyLines(out), nil
 }
 
+// Tree lists tracked file paths in ref's tree. Because it reads the
+// committed tree (not the working directory), it automatically excludes
+// anything .gitignore'd — an ignored file was never tracked in the first
+// place, so there's nothing to filter out.
+func Tree(repoPath, ref string) ([]string, error) {
+	out, err := runGit(repoPath, "ls-tree", "-r", "--name-only", ref)
+	if err != nil {
+		return nil, err
+	}
+	return splitNonEmptyLines(out), nil
+}
+
 // Show returns the full patch text for a single commit (used by
 // --diff-content). This is comparatively expensive and is only meant to be
 // called for commits that survived filtering.

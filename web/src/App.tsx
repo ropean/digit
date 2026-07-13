@@ -16,6 +16,7 @@ import { Header } from "./components/Header";
 import { NavTabs, type NavItem } from "./components/NavTabs";
 import { TimelineFilterBar } from "./components/TimelineFilterBar";
 import { OverviewSection, computeKpi } from "./components/OverviewSection";
+import { ProjectStructureSection } from "./components/ProjectStructureSection";
 import { CommitsSection } from "./components/CommitsSection";
 import { ContributorsSection } from "./components/ContributorsSection";
 import { FileHeatSection } from "./components/FileHeatSection";
@@ -29,6 +30,7 @@ const DAY_MS = 86400000;
 
 const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview" },
+  { id: "structure", label: "Structure" },
   { id: "commits", label: "Commits" },
   { id: "contributors", label: "Contributors" },
   { id: "files", label: "File Heat" },
@@ -94,16 +96,26 @@ export function App({ data }: { data: RepoData }) {
     [minDate, maxDate],
   );
 
-  const handleCustomFrom = useCallback((iso: string) => {
-    setQuickRange("custom");
-    setDateFrom(new Date(iso + "T00:00:00"));
-    setPage(1);
-  }, []);
-  const handleCustomTo = useCallback((iso: string) => {
-    setQuickRange("custom");
-    setDateTo(new Date(iso + "T23:59:59"));
-    setPage(1);
-  }, []);
+  const handleCustomFrom = useCallback(
+    (iso: string) => {
+      const candidate = new Date(iso + "T00:00:00");
+      setQuickRange("custom");
+      setDateFrom(candidate);
+      if (candidate > dateTo) setDateTo(candidate);
+      setPage(1);
+    },
+    [dateTo],
+  );
+  const handleCustomTo = useCallback(
+    (iso: string) => {
+      const candidate = new Date(iso + "T23:59:59");
+      setQuickRange("custom");
+      setDateTo(candidate);
+      if (candidate < dateFrom) setDateFrom(candidate);
+      setPage(1);
+    },
+    [dateFrom],
+  );
   const handleRangeFrom = useCallback(
     (dayIndex: number) => {
       const candidate = new Date(minDate.getTime() + dayIndex * DAY_MS);
@@ -243,6 +255,7 @@ export function App({ data }: { data: RepoData }) {
       <div className="body-wrap">
         <div className="content-area" ref={scrollRef}>
           <OverviewSection kpi={kpi} growth={growth} dark={dark} />
+          <ProjectStructureSection tree={data.tree} />
           <CommitsSection
             commits={filteredCommits}
             authorNames={allAuthorStats.map((a) => a.name)}

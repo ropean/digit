@@ -80,9 +80,16 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; min-width: 0; }
 
-html, body, #root { height: 100%; }
+/*
+ * .content-area is the only element meant to scroll (vertically). html/body
+ * are pinned to exactly one viewport and forbidden from scrolling in either
+ * direction, so a layout miscalculation anywhere else degrades into a
+ * clipped element instead of a second, page-level scrollbar racing the
+ * intentional one.
+ */
+html, body, #root { height: 100%; overflow: hidden; }
 
 body {
   margin: 0;
@@ -96,13 +103,14 @@ button, input, select {
   font-family: inherit;
 }
 
-.app { display: flex; flex-direction: column; height: 100vh; }
+.app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
 /* ---------- header ---------- */
 .header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 20px; height: 54px; min-height: 54px;
   border-bottom: 1px solid var(--border); background: var(--surface-1); flex-shrink: 0;
+  min-width: 0;
 }
 .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .logo-mark { color: var(--accent); font-size: 16px; font-weight: 700; flex-shrink: 0; }
@@ -152,11 +160,25 @@ button, input, select {
 .density-wrap { position: relative; height: 46px; }
 .density-bars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 1px; }
 .density-bar { flex: 1; min-width: 1px; border-radius: 1px; }
+/*
+ * Two overlapping <input type="range"> share this track to make a dual-handle
+ * brush. A full-width input naturally captures pointer events across its
+ * entire box, so the top one (range-input-top) would swallow every drag and
+ * make the bottom handle ("from") ungrabbable. Fix: disable pointer events on
+ * the track itself and re-enable them only on the thumb, so each slider only
+ * responds to drags starting on its own handle.
+ */
 .range-input {
-  position: absolute; inset: 0; width: 100%; height: 46px; margin: 0; opacity: 0.001; cursor: ew-resize; z-index: 3;
-  -webkit-appearance: none; appearance: none; background: transparent;
+  position: absolute; inset: 0; width: 100%; height: 46px; margin: 0; opacity: 0.001; z-index: 3;
+  -webkit-appearance: none; appearance: none; background: transparent; pointer-events: none;
 }
-.range-input::-webkit-slider-thumb { -webkit-appearance: none; width: 1px; height: 1px; }
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 46px; cursor: ew-resize; pointer-events: auto; background: transparent;
+}
+.range-input::-moz-range-thumb {
+  width: 18px; height: 46px; cursor: ew-resize; pointer-events: auto; background: transparent; border: none;
+}
+.range-input::-moz-range-track { background: transparent; }
 .range-input-top { z-index: 4; }
 
 /* ---------- body ---------- */
@@ -222,6 +244,13 @@ tr.commit-row.selected td { background: var(--accent-soft); }
 .file-chip {
   cursor: pointer; font-family: var(--mono); border-radius: 6px; border: 1px solid var(--accent-border); color: var(--text-primary);
 }
+
+/* ---------- project structure ---------- */
+.tree-view { padding: 8px; max-height: 480px; overflow-y: auto; font-family: var(--mono); font-size: 12.5px; }
+.tree-row { padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
+.tree-folder { cursor: pointer; font-weight: 600; }
+.tree-folder:hover { background: var(--surface-2); }
+.tree-chevron { display: inline-block; width: 14px; color: var(--text-muted); }
 
 /* ---------- branch graph ---------- */
 .legend-row { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
