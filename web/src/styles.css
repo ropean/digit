@@ -207,7 +207,10 @@ button, input, select {
 .heatmap-daylabels span { display: block; line-height: 11px; }
 .heatmap-grid { display: flex; }
 .heatmap-week { display: flex; flex-direction: column; }
-.heatmap-cell { border-radius: 2px; }
+/* Bordered so the empty/level-0 cell (background: var(--surface-2)) stays
+   visible even when the heatmap sits inside a tinted .section-group — which
+   is itself var(--surface-2) — instead of vanishing into it. */
+.heatmap-cell { border-radius: 2px; border: 1px solid var(--border); }
 .heatmap-legend { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--text-muted); margin-left: auto; flex-shrink: 0; }
 .heatmap-legend .heatmap-cell { border-radius: 2px; }
 .heatmap-controls { display: flex; align-items: center; gap: 16px; margin-top: 10px; }
