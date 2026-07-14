@@ -228,42 +228,6 @@ export function computeKeywords(commits: Commit[]): KeywordCount[] {
   return [...counts.entries()].map(([word, count]) => ({ word, count })).sort((a, b) => b.count - a.count);
 }
 
-export interface SurvivalMonth {
-  month: string;
-  added: number;
-  surviving: number;
-}
-
-// Deterministic pseudo-random in [0,1) derived from a string, so re-renders
-// are stable without needing a stored seed.
-function hash01(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return ((h >>> 0) % 10000) / 10000;
-}
-
-// Estimates how many of a month's added lines are still present today.
-// There's no real blame data behind this — it's a decay curve applied to
-// real "lines added per month" counts, clearly labeled as an estimate in
-// the UI. A true answer would require running `git blame` across the
-// whole tree, which is out of scope for this report.
-export function computeSurvival(commits: Commit[]): SurvivalMonth[] {
-  const monthMap = new Map<string, number>();
-  for (const c of commits) {
-    const key = c.date.slice(0, 7);
-    monthMap.set(key, (monthMap.get(key) ?? 0) + c.insertions);
-  }
-  const months = [...monthMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  return months.map(([month, added], i) => {
-    const monthsAgo = months.length - 1 - i;
-    const decay = Math.max(0.35, Math.pow(0.965, monthsAgo * 3) - hash01(month) * 0.05);
-    return { month, added, surviving: Math.round(added * decay) };
-  });
-}
-
 export interface CommitContext {
   filesCount: number;
   avgFilesPerCommit: number;
@@ -477,6 +441,7 @@ function dirPrefix(path: string, depth: number): string {
 export interface ChurnMonth {
   month: string;
   commits: number;
+  authors: number;
   additions: number;
   deletions: number;
   net: number;
@@ -487,11 +452,12 @@ export interface ChurnMonth {
 // health score and as the source series for Overview sparklines, so there's
 // exactly one place that buckets commits by month.
 export function computeChurnTrend(commits: Commit[]): ChurnMonth[] {
-  const map = new Map<string, { commits: number; additions: number; deletions: number }>();
+  const map = new Map<string, { commits: number; authors: Set<string>; additions: number; deletions: number }>();
   for (const c of commits) {
     const key = c.date.slice(0, 7);
-    const e = map.get(key) ?? { commits: 0, additions: 0, deletions: 0 };
+    const e = map.get(key) ?? { commits: 0, authors: new Set<string>(), additions: 0, deletions: 0 };
     e.commits++;
+    e.authors.add(c.authorEmail || c.authorName);
     e.additions += c.insertions;
     e.deletions += c.deletions;
     map.set(key, e);
@@ -501,6 +467,7 @@ export function computeChurnTrend(commits: Commit[]): ChurnMonth[] {
     .map(([month, e]) => ({
       month,
       commits: e.commits,
+      authors: e.authors.size,
       additions: e.additions,
       deletions: e.deletions,
       net: e.additions - e.deletions,

@@ -18,7 +18,6 @@ import {
   computeLanguageActivity,
   computePeriodComparison,
   computeReleaseStats,
-  computeSurvival,
   computeTestRatio,
   generateExecutiveSummary,
 } from "./stats";
@@ -40,7 +39,6 @@ import { BranchesSection } from "./components/BranchesSection";
 import { ReleasesSection } from "./components/ReleasesSection";
 import { FileHeatSection } from "./components/FileHeatSection";
 import { CouplingSection } from "./components/CouplingSection";
-import { SurvivalSection } from "./components/SurvivalSection";
 import { KeywordsSection } from "./components/KeywordsSection";
 import { InsightsSection } from "./components/InsightsSection";
 import { CommitDrawer } from "./components/CommitDrawer";
@@ -53,7 +51,7 @@ function deriveRepoName(repoPath: string): string {
   return repoPath.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || repoPath;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const BASE_NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", group: "Overview" },
   { id: "commits", label: "Commits", group: "Activity" },
   { id: "rhythm", label: "Rhythm", group: "Activity" },
@@ -62,7 +60,6 @@ const NAV_ITEMS: NavItem[] = [
   { id: "directories", label: "Directories", group: "Code" },
   { id: "files", label: "File Heat", group: "Code" },
   { id: "coupling", label: "Coupling", group: "Code" },
-  { id: "survival", label: "Survival", group: "Code" },
   { id: "contributors", label: "Contributors", group: "People" },
   { id: "branches", label: "Branches", group: "Branches & Releases" },
   { id: "releases", label: "Releases", group: "Branches & Releases" },
@@ -88,8 +85,8 @@ export function App({ data }: { data: RepoData }) {
   const minDate = useMemo(() => (commitTimes.length ? new Date(Math.min(...commitTimes)) : new Date()), [commitTimes]);
   const maxDate = useMemo(() => (commitTimes.length ? new Date(Math.max(...commitTimes)) : new Date()), [commitTimes]);
 
-  const [quickRange, setQuickRange] = useState("90");
-  const [dateFrom, setDateFrom] = useState<Date>(() => new Date(Math.max(minDate.getTime(), maxDate.getTime() - 90 * DAY_MS)));
+  const [quickRange, setQuickRange] = useState("all");
+  const [dateFrom, setDateFrom] = useState<Date>(minDate);
   const [dateTo, setDateTo] = useState<Date>(maxDate);
 
   const [authorFilter, setAuthorFilter] = useState<string | null>(null);
@@ -186,7 +183,6 @@ export function App({ data }: { data: RepoData }) {
   const fileStats = useMemo(() => computeFileStats(filteredCommits), [filteredCommits]);
   const coupling = useMemo(() => computeCoupling(filteredCommits, 12), [filteredCommits]);
   const keywords = useMemo(() => computeKeywords(filteredCommits), [filteredCommits]);
-  const survival = useMemo(() => computeSurvival(filteredCommits), [filteredCommits]);
   const commitStats = useMemo(() => computeCommitStats(filteredCommits), [filteredCommits]);
   const busFactor = useMemo(() => computeBusFactor(authorStats), [authorStats]);
   const directoryStats = useMemo(() => computeDirectoryStats(filteredCommits), [filteredCommits]);
@@ -206,6 +202,10 @@ export function App({ data }: { data: RepoData }) {
   const allBusFactor = useMemo(() => computeBusFactor(allAuthorStats), [allAuthorStats]);
   const allChurnTrend = useMemo(() => computeChurnTrend(data.commits), [data.commits]);
   const releaseStats = useMemo(() => computeReleaseStats(tagStats, data.commits), [tagStats, data.commits]);
+  const navItems = useMemo(
+    () => (releaseStats.length > 0 ? BASE_NAV_ITEMS : BASE_NAV_ITEMS.filter((item) => item.id !== "releases")),
+    [releaseStats.length],
+  );
   const docHealth = useMemo(() => computeDocHealth(data.tree, data.commits, now), [data.tree, data.commits, now]);
   const testRatio = useMemo(() => computeTestRatio(data.tree), [data.tree]);
   const treeCounts = useMemo(() => countEntries(buildTree(data.tree)), [data.tree]);
@@ -355,7 +355,7 @@ export function App({ data }: { data: RepoData }) {
         theme={theme}
         onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
       />
-      <NavTabs items={NAV_ITEMS} active={activeSection} onSelect={jumpTo} />
+      <NavTabs items={navItems} active={activeSection} onSelect={jumpTo} />
       <TimelineFilterBar
         dateFrom={dateFrom}
         dateTo={dateTo}
@@ -422,7 +422,6 @@ export function App({ data }: { data: RepoData }) {
           <DirectoriesSection directories={directoryStats} onSelectDirectory={onSelectDirectory} />
           <FileHeatSection files={fileStats} onSelectFile={onSelectFile} />
           <CouplingSection pairs={coupling.pairs} nodes={coupling.nodes} />
-          <SurvivalSection survival={survival} />
           <ContributorsSection
             authors={authorStats}
             authorFilter={authorFilter}
@@ -432,7 +431,7 @@ export function App({ data }: { data: RepoData }) {
             fileStats={fileStats}
           />
           <BranchesSection branches={branchStats} />
-          <ReleasesSection releases={releaseStats} />
+          {releaseStats.length > 0 && <ReleasesSection releases={releaseStats} />}
           <KeywordsSection keywords={keywords} />
           <InsightsSection health={health} insights={insights} />
         </div>

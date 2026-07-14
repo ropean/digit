@@ -1,8 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { buildTree, collectMatchPaths, countEntries, type TreeNode } from "../tree";
 
-const AUTO_EXPAND_THRESHOLD = 40;
-
 function collectAllFolderPaths(node: TreeNode): Set<string> {
   const out = new Set<string>();
   const walk = (n: TreeNode) => {
@@ -22,7 +20,7 @@ export function ProjectStructureSection({ tree }: { tree: string[] }) {
   const { files, folders } = useMemo(() => countEntries(root), [root]);
   const allFolderPaths = useMemo(() => collectAllFolderPaths(root), [root]);
 
-  const [expanded, setExpanded] = useState<Set<string>>(() => (files <= AUTO_EXPAND_THRESHOLD ? new Set(allFolderPaths) : new Set()));
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [filter, setFilter] = useState("");
 
   const filterActive = filter.trim().length > 0;

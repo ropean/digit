@@ -3,8 +3,7 @@
 A git history visualization CLI: analyzes a local repository's commit history and
 generates a self-contained HTML report (or JSON). The report page has an English UI
 covering overview trends, a filterable commit list (with a real diff detail drawer),
-contributors, file heat, file coupling analysis, an estimated code-survival curve,
-and a commit-keyword cloud.
+contributors, file heat, file coupling analysis, and a commit-keyword cloud.
 
 ## Build
 
@@ -68,8 +67,6 @@ web/dist/            frontend build output (not committed; run npm run build-web
   Commits
 - **Coupling** — a network graph + list of files frequently changed together in the
   same commit
-- **Survival (estimated)** — lines added per month vs. an estimated surviving
-  share, computed with a decay heuristic (not a real `git blame` analysis)
 - **Keywords** — a word cloud of commit-message prefixes (`feat:`/`fix:`/…)
 
 The top of the report also has quick date-range presets, a custom-range picker, a

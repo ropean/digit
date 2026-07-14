@@ -153,10 +153,14 @@ export function OverviewSection({
   const gaugeStyle: CSSProperties = {
     background: `conic-gradient(${scoreColor(health.overall)} calc(${health.overall} * 3.6deg), var(--surface-2) 0)`,
   };
-  const commitSpark = monthlySeries.slice(-12).map((m) => m.commits);
+  const recentMonths = monthlySeries.slice(-12);
+  const commitSpark = recentMonths.map((m) => m.commits);
+  const contributorsSpark = recentMonths.map((m) => m.authors);
+  const additionsSpark = recentMonths.map((m) => m.additions);
+  const deletionsSpark = recentMonths.map((m) => m.deletions);
   const locSpark = (() => {
     let running = repo.currentLines ?? 0;
-    const series = monthlySeries.slice(-12);
+    const series = recentMonths;
     const totalNet = series.reduce((s, m) => s + m.net, 0);
     running -= totalNet;
     return series.map((m) => (running += m.net));
@@ -192,9 +196,9 @@ export function OverviewSection({
       </div>
       <div className="kpi-grid tier2">
         <Tier2Card label="Commits" displayValue={formatNum(kpi.totalCommits)} metric={periodComparison.commits} sparklineValues={commitSpark} />
-        <Tier2Card label="Active contributors" displayValue={String(kpi.authorsActive)} metric={periodComparison.contributors} />
-        <Tier2Card label="Additions" displayValue={`+${formatNum(kpi.additions)}`} valueClassName="good" metric={periodComparison.additions} />
-        <Tier2Card label="Deletions" displayValue={`−${formatNum(kpi.deletions)}`} valueClassName="critical" metric={periodComparison.deletions} />
+        <Tier2Card label="Active contributors" displayValue={String(kpi.authorsActive)} metric={periodComparison.contributors} sparklineValues={contributorsSpark} />
+        <Tier2Card label="Additions" displayValue={`+${formatNum(kpi.additions)}`} valueClassName="good" metric={periodComparison.additions} sparklineValues={additionsSpark} />
+        <Tier2Card label="Deletions" displayValue={`−${formatNum(kpi.deletions)}`} valueClassName="critical" metric={periodComparison.deletions} sparklineValues={deletionsSpark} />
         {repo.currentLines != null && (
           <Tier2Card label="Current lines" displayValue={formatNum(repo.currentLines)} metric={{ current: repo.currentLines, previous: null, deltaPct: null }} sparklineValues={locSpark} />
         )}
