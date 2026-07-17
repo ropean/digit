@@ -82,8 +82,9 @@ jobs:
         run: |
           ext=""
           if [ "$GOOS" = "windows" ]; then ext=".exe"; fi
+          version="${{ env.RELEASE_TAG }}"
           go build \
-            -ldflags="-s -w" \
+            -ldflags="-s -w -X github.com/ropean/digit/internal/selfupdate.Version=${version}" \
             -o "${{ env.BINARY_NAME }}-${GOOS}-${GOARCH}${ext}" .
 
       - uses: actions/upload-artifact@v6

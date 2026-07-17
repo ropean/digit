@@ -63,9 +63,19 @@ digit . --all-branches
 digit . --max-commits 5000
 digit . --open
 digit . --format json --output data.json
+digit version
+digit check-update
+digit upgrade [--version v0.1.0]
 ```
 
 See `digit --help` for the full flag list.
+
+`digit version` prints the running build's version (embedded at release-build
+time; local `go build` / `npm run build` gives `dev`). `digit check-update`
+compares it against the latest GitHub release. `digit upgrade` downloads the
+matching platform asset and replaces the running binary in place — same
+release assets and the same default install location (`~/.local/bin`, or
+`~/bin` on Windows) as `install.sh`.
 
 ## Project layout
 
