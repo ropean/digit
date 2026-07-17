@@ -7,16 +7,37 @@ contributors, file heat, file coupling analysis, and a commit-keyword cloud.
 
 ## Install
 
-Download a pre-built binary from GitHub Releases:
+Download a pre-built binary from GitHub Releases.
+
+macOS, Linux, WSL:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ropean/digit/main/install.sh | bash
 ```
 
+Windows PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/ropean/digit/main/install.ps1 | iex
+```
+
+Windows CMD:
+
+```bat
+curl -fsSL https://raw.githubusercontent.com/ropean/digit/main/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
+All three install to `~/.local/bin` (i.e. `%USERPROFILE%\.local\bin` on Windows)
+and pick the binary matching your CPU architecture (amd64/arm64).
+
 Pin a specific version:
 
 ```bash
 DIGIT_VERSION=v0.1.0 curl -fsSL https://raw.githubusercontent.com/ropean/digit/main/install.sh | bash
+```
+
+```powershell
+$env:DIGIT_VERSION = "v0.1.0"; irm https://raw.githubusercontent.com/ropean/digit/main/install.ps1 | iex
 ```
 
 ## Build
@@ -74,8 +95,9 @@ See `digit --help` for the full flag list.
 time; local `go build` / `npm run build` gives `dev`). `digit check-update`
 compares it against the latest GitHub release. `digit upgrade` downloads the
 matching platform asset and replaces the running binary in place — same
-release assets and the same default install location (`~/.local/bin`, or
-`~/bin` on Windows) as `install.sh`.
+release assets and the same default install location (`~/.local/bin` on every
+platform, e.g. `C:\Users\<you>\.local\bin` on Windows) as the install
+scripts.
 
 ## Project layout
 
