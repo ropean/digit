@@ -74,8 +74,8 @@ See `digit --help` for the full flag list.
 time; local `go build` / `npm run build` gives `dev`). `digit check-update`
 compares it against the latest GitHub release. `digit upgrade` downloads the
 matching platform asset and replaces the running binary in place — same
-release assets and the same default install location (`~/.local/bin`, or
-`~/bin` on Windows) as `install.sh`.
+release assets and the same default install location (`~/.local/bin` on every
+platform, e.g. `C:\Users\<you>\.local\bin` on Windows) as `install.sh`.
 
 ## Project layout
 

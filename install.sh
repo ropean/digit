@@ -25,7 +25,6 @@ detect_platform() {
     Darwin) GOOS="darwin" ;;
     MINGW*|MSYS*|CYGWIN*)
       GOOS="windows"
-      DEFAULT_INSTALL_DIR="${HOME}/bin"
       ;;
     *) echo "Unsupported OS: $os" >&2; exit 1 ;;
   esac
