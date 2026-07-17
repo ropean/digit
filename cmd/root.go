@@ -63,6 +63,7 @@ func init() {
 	flags.StringVar(&flagFormat, "format", "html", "output format: html or json")
 	flags.BoolVar(&flagOpen, "open", false, "open the report in the default browser once generated")
 	flags.BoolVarP(&flagQuiet, "quiet", "q", false, "quiet mode: only print what's necessary")
+	rootCmd.AddCommand(versionCmd, checkUpdateCmd, upgradeCmd)
 }
 
 // Execute runs the root command.

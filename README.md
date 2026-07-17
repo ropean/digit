@@ -5,6 +5,20 @@ generates a self-contained HTML report (or JSON). The report page has an English
 covering overview trends, a filterable commit list (with a real diff detail drawer),
 contributors, file heat, file coupling analysis, and a commit-keyword cloud.
 
+## Install
+
+Download a pre-built binary from GitHub Releases:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ropean/digit/main/install.sh | bash
+```
+
+Pin a specific version:
+
+```bash
+DIGIT_VERSION=v0.1.0 curl -fsSL https://raw.githubusercontent.com/ropean/digit/main/install.sh | bash
+```
+
 ## Build
 
 ```bash
@@ -22,6 +36,19 @@ requires that directory to exist at compile time — a fresh clone running `go b
 expected; just run `npm run build-web` once). Frontend changes likewise need a
 `npm run build-web` rerun before `go build` picks up the new output.
 
+## Release
+
+Pushing a tag triggers the GitHub Actions release workflow (6 platforms: linux/darwin/windows × amd64/arm64):
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The workflow builds the frontend once, then cross-compiles the CLI for each
+platform and publishes the binaries plus a `checksums.txt` to the GitHub
+release. It can also be run manually via `workflow_dispatch` with a `tag` input.
+
 ## Usage
 
 ```bash
@@ -36,9 +63,19 @@ digit . --all-branches
 digit . --max-commits 5000
 digit . --open
 digit . --format json --output data.json
+digit version
+digit check-update
+digit upgrade [--version v0.1.0]
 ```
 
 See `digit --help` for the full flag list.
+
+`digit version` prints the running build's version (embedded at release-build
+time; local `go build` / `npm run build` gives `dev`). `digit check-update`
+compares it against the latest GitHub release. `digit upgrade` downloads the
+matching platform asset and replaces the running binary in place — same
+release assets and the same default install location (`~/.local/bin`, or
+`~/bin` on Windows) as `install.sh`.
 
 ## Project layout
 
