@@ -43,7 +43,7 @@ export function LanguagesSection({
               <div
                 key={l.language}
                 className="lang-bar-seg"
-                title={`${l.language} — ${((l.bytes / totalBytes) * 100).toFixed(1)}%`}
+                data-tip={`${l.language} — ${((l.bytes / totalBytes) * 100).toFixed(1)}%`}
                 style={{ width: `${(l.bytes / totalBytes) * 100}%`, background: colorFor(l.language) }}
               />
             ))}
@@ -52,7 +52,7 @@ export function LanguagesSection({
             {languages.map((l) => (
               <div key={l.language} className="lang-legend-item">
                 <span className="legend-swatch" style={{ background: colorFor(l.language) }} />
-                <span className="lang-legend-name" title={l.language}>{l.language}</span>
+                <span className="lang-legend-name" data-tip={l.language}>{l.language}</span>
                 <span className="lang-legend-pct">
                   {((l.bytes / totalBytes) * 100).toFixed(1)}% · {l.files} file{l.files === 1 ? "" : "s"}
                 </span>

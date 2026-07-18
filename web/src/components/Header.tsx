@@ -16,7 +16,7 @@ export function Header({ repoName, repoPath, searchQuery, onSearchChange, theme,
           <path d="M9 10.5h14L9.6 21.5H23" fill="none" stroke="#ffffff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
           <circle cx="23" cy="9" r="2.6" fill="#8ecbff" />
         </svg>
-        <div className="repo-name" title={repoPath}>{repoName}</div>
+        <div className="repo-name" data-tip={repoPath}>{repoName}</div>
       </div>
       <div className="header-right">
         <input
@@ -26,7 +26,7 @@ export function Header({ repoName, repoPath, searchQuery, onSearchChange, theme,
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
         />
-        <button className="icon-btn" onClick={onToggleTheme} title="Toggle theme">
+        <button className="icon-btn" onClick={onToggleTheme} data-tip="Toggle theme">
           {theme === "dark" ? "☀" : "☾"}
         </button>
       </div>

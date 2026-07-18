@@ -79,7 +79,7 @@ export function CommitsSection(props: Props) {
                     <span className="author-dot" style={{ background: props.authorColor(c.authorName) }} />
                     {c.authorName}
                   </td>
-                  <td className="td-message" title={c.subject}>{truncate(c.subject, 58)}</td>
+                  <td className="td-message" data-tip={c.subject}>{truncate(c.subject, 58)}</td>
                   <td className="td-mono">{c.files?.length ?? 0}</td>
                   <td className="td-mono">
                     <span className="plus-text">+{c.insertions}</span> <span className="minus-text">−{c.deletions}</span>

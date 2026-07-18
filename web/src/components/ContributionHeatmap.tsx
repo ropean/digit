@@ -79,7 +79,7 @@ export function ContributionHeatmap({ commits }: { commits: Commit[] }) {
                         key={di}
                         className="heatmap-cell"
                         style={{ width: cell, height: cell, marginBottom: di === 6 ? 0 : GAP, background: heatmapColor(level, "var(--surface-2)") }}
-                        title={cellData.date ? `${cellData.count} commit${cellData.count === 1 ? "" : "s"} on ${formatDate(cellData.date)}` : undefined}
+                        data-tip={cellData.date ? `${cellData.count} commit${cellData.count === 1 ? "" : "s"} on ${formatDate(cellData.date)}` : undefined}
                       />
                     );
                   })}
@@ -95,7 +95,7 @@ export function ContributionHeatmap({ commits }: { commits: Commit[] }) {
             <button
               key={y}
               className={"year-btn" + (y === selectedYear ? " active" : "")}
-              title={String(y)}
+              data-tip={String(y)}
               onClick={() => setPickedYear(y)}
             >
               &apos;{String(y).slice(2)}

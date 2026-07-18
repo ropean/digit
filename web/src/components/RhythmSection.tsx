@@ -95,7 +95,7 @@ export function RhythmSection({ commits, commitStats }: { commits: Commit[]; com
                         <div
                           key={hour}
                           className="heatmap-cell"
-                          title={`${WEEKDAY_LABELS[day]} ${hour}:00 — ${count} commit${count === 1 ? "" : "s"}`}
+                          data-tip={`${WEEKDAY_LABELS[day]} ${hour}:00 — ${count} commit${count === 1 ? "" : "s"}`}
                           style={{
                             width: cell,
                             height: cell,
