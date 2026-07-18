@@ -280,7 +280,7 @@ export function OverviewSection({
           {repo.largestFilePath && (
             <div className="kpi-card">
               <div className="kpi-label">Largest file</div>
-              <div className="kpi-value" style={{ fontSize: 13 }} title={repo.largestFilePath}>
+              <div className="kpi-value" style={{ fontSize: 13 }} data-tip={repo.largestFilePath}>
                 {repo.largestFilePath.split("/").pop()} · {formatBytes(repo.largestFileBytes ?? 0)}
               </div>
             </div>

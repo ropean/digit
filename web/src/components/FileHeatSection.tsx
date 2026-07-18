@@ -34,7 +34,7 @@ export function FileHeatSection({ files, onSelectFile }: Props) {
               <div
                 key={f.path}
                 className="file-chip"
-                title={`${f.path} — changed ${f.changeCount}× by ${f.authors.length} author${f.authors.length === 1 ? "" : "s"}, last modified ${timeAgo(f.lastModified)}`}
+                data-tip={`${f.path} — changed ${f.changeCount}× by ${f.authors.length} author${f.authors.length === 1 ? "" : "s"}, last modified ${timeAgo(f.lastModified)}`}
                 onClick={() => onSelectFile(f.path)}
                 style={{
                   fontSize: `${12.5 + t * 8}px`,
@@ -42,7 +42,7 @@ export function FileHeatSection({ files, onSelectFile }: Props) {
                   background: `color-mix(in srgb, var(--accent) ${10 + t * 45}%, transparent)`,
                 }}
               >
-                {isHotspot && <span title="Hotspot: multi-author, heavily churned">🔥 </span>}
+                {isHotspot && <span data-tip="Hotspot: multi-author, heavily churned">🔥 </span>}
                 {base}
               </div>
             );

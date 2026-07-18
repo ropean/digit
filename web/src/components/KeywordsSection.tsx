@@ -16,7 +16,7 @@ export function KeywordsSection({ keywords }: { keywords: KeywordCount[] }) {
             return (
               <span
                 key={k.word}
-                title={`${k.count} commits`}
+                data-tip={`${k.count} commits`}
                 style={{
                   fontSize: `${14.5 + t * 22}px`,
                   color: t > 0.5 ? "var(--accent)" : "var(--text-secondary)",

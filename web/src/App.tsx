@@ -42,6 +42,7 @@ import { CouplingSection } from "./components/CouplingSection";
 import { KeywordsSection } from "./components/KeywordsSection";
 import { InsightsSection } from "./components/InsightsSection";
 import { CommitDrawer } from "./components/CommitDrawer";
+import { TooltipHost } from "./components/Tooltip";
 
 const DAY_MS = 86400000;
 
@@ -392,6 +393,7 @@ export function App({ data }: { data: RepoData }) {
 
   return (
     <div className="app">
+      <TooltipHost />
       <Header
         repoName={repoName}
         repoPath={data.repoPath}
