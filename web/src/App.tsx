@@ -22,7 +22,7 @@ import {
   generateExecutiveSummary,
 } from "./stats";
 import { categoricalColor, prefersDark } from "./theme";
-import { formatCompactTimestamp } from "./format";
+import { formatCompactTimestamp, formatDateTime } from "./format";
 import { buildTree, countEntries } from "./tree";
 import { useDebouncedValue } from "./useDebouncedValue";
 import { Header } from "./components/Header";
@@ -517,7 +517,7 @@ export function App({ data }: { data: RepoData }) {
               <a href="https://github.com/ropean/git-z" target="_blank" rel="noopener noreferrer">
                 git-z
               </a>{" "}
-              — a git history visualization CLI · report built on {formatCompactTimestamp(data.generatedAt)}
+              — a git history visualization CLI · report built on {formatDateTime(data.generatedAt)}
             </div>
           </div>
         </div>
